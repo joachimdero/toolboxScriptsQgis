@@ -44,6 +44,7 @@ def load_module_from_github(feedback=None):
 
 
 def main(parameters, feedback=None):
-    load_module_from_github()
+    loaded_modules = load_module_from_github()
+    feedback.pushInfo(str(loaded_modules))
 
 
