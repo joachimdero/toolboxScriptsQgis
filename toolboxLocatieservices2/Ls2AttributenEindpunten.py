@@ -45,7 +45,7 @@ def load_module_from_github(feedback=None):
 
 def main(parameters, feedback=None):
     loaded_modules = load_module_from_github()
-    feedback.pushInfo(str(loaded_modules))
+    feedback.pushInfo(str(  f"loaded_modules: {loaded_modules}"))
     feedback.pushInfo(str(dir(loaded_modules["Ls2AttributenEindpunten"])))
     feedback.pushInfo(str(dir(AuthenticatieProxyAcmAwv)))
     feedback.pushInfo("einde")
