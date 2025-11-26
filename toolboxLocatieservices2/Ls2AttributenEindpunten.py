@@ -48,5 +48,6 @@ def main(parameters, feedback=None):
     feedback.pushInfo(str(loaded_modules))
     feedback.pushInfo(str(dir(loaded_modules["Ls2AttributenEindpunten"])))
     feedback.pushInfo(str(dir(AuthenticatieProxyAcmAwv)))
+    feedback.pushInfo("einde")
 
 
