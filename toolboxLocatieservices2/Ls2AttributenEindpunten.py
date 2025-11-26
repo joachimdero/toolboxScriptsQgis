@@ -23,6 +23,7 @@ def load_module_from_github(feedback=None):
     loaded_modules = {}
 
     for module_name, url in modules.items():
+        feedback.pushInfo(f"Bezig met laden van module: {module_name} van {url}")
         local_path = os.path.join(cache_dir, module_name + ".py")
         urllib.request.urlretrieve(url, local_path)
 
@@ -44,7 +45,7 @@ def load_module_from_github(feedback=None):
 
 
 def main(parameters, feedback=None):
-    loaded_modules = load_module_from_github()
+    loaded_modules = load_module_from_github(feedback)
     feedback.pushInfo(str(  f"loaded_modules: {loaded_modules}"))
     feedback.pushInfo(str(dir(loaded_modules["AuthenticatieProxyAcmAwv"])))
     feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
