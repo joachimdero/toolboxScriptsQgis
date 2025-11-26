@@ -51,5 +51,6 @@ def main(parameters, feedback=None):
 
 
     feedback.pushInfo("einde")
+    feedback.pushInfo("einde")
 
 
