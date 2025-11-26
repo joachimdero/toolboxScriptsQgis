@@ -44,6 +44,6 @@ def load_module_from_github(feedback=None):
 
 
 def main(parameters, feedback=None):
-    load_module_from_github
+    load_module_from_github()
 
 
