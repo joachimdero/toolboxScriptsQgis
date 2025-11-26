@@ -1,5 +1,5 @@
 {
+  "Feedback": "https://raw.githubusercontent.com/joachimdero/AwvFuncties_os/refs/heads/master/libs/Feedback.py",
   "AuthenticatieProxyAcmAwv": "https://raw.githubusercontent.com/joachimdero/AwvFuncties_os/refs/heads/master/libs/AuthenticatieProxyAcmAwv.py",
-  "Locatieservices2": "https://raw.githubusercontent.com/joachimdero/AwvFuncties_os/refs/heads/master/libs/Locatieservices2.py",
-  "Feedback": "https://raw.githubusercontent.com/joachimdero/AwvFuncties_os/refs/heads/master/libs/Feedback.py"
+  "Locatieservices2": "https://raw.githubusercontent.com/joachimdero/AwvFuncties_os/refs/heads/master/libs/Locatieservices2.py"
 }
