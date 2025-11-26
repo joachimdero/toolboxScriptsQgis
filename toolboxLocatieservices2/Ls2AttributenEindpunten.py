@@ -47,6 +47,6 @@ def main(parameters, feedback=None):
     loaded_modules = load_module_from_github()
     feedback.pushInfo(str(loaded_modules))
     feedback.pushInfo(str(dir(loaded_modules["Ls2AttributenEindpunten"])))
-    feedback.pushInfo(str(dir(AuthenticatieProxyAcmAwvAuthenticatieProxyAcmAwv)))
+    feedback.pushInfo(str(dir(AuthenticatieProxyAcmAwv)))
 
 
