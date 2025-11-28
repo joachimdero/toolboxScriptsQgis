@@ -32,8 +32,7 @@ def load_module_from_github(feedback=None):
             if module_name in sys.modules:
                 module = importlib.reload(sys.modules[module_name])
             else:
-                #module = importlib.import_module(module_name)
-                import module_name
+                module = importlib.import_module(module_name)
 
             loaded_modules[module_name] = module
             if feedback:
@@ -41,24 +40,20 @@ def load_module_from_github(feedback=None):
         except Exception as e:
             if feedback:
                 feedback.reportError(f"Fout bij importeren {module_name}: {e}", fatalError=False)
-        # import AuthenticatieProxyAcmAwv
-        # reload AuthenticatieProxyAcmAwv
-        feedback.pushInfo(f"ls2: {dir(AuthenticatieProxyAcmAwv)}    ")
-        # import Locatieservices2
-        # reload Locatieservices2
 
     return loaded_modules
 
 
 def main(parameters, feedback=None):
     loaded_modules = load_module_from_github(feedback)
-    feedback.pushInfo(str(  f"loaded_modules: {loaded_modules}"))
-    feedback.pushInfo(str(dir(loaded_modules["AuthenticatieProxyAcmAwv"])))
-    feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
+    import Locatieservices2
+    import AuthenticatieProxyAcmAwv
+    # feedback.pushInfo(str(  f"loaded_modules: {loaded_modules}"))
+    # feedback.pushInfo(str(dir(loaded_modules["AuthenticatieProxyAcmAwv"])))
+    # feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
 
 
-    feedback.pushInfo(f"ls2222: {dir(AuthenticatieProxyAcmAwv)}    ")
-    # feedback.pushInfo(f"ls2: {dir(Locatieservices2)}    ")
-    feedback.pushInfo("einde4")
+    feedback.pushInfo(f"ls2: {dir(Locatieservices2)}    ")
+    feedback.pushInfo("einde")
 
 
