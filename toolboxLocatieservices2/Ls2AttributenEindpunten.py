@@ -52,7 +52,7 @@ def main(parameters, feedback=None):
     feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
 
 
-    feedback.pushInfo(f"ls2: {dir(Locatieservices2)}    ")
+    feedback.pushInfo(f"ls2: {dir(AuthenticatieProxyAcmAwv)}    ")
     feedback.pushInfo("einde")
 
 
