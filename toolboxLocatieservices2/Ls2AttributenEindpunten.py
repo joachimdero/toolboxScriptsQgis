@@ -44,11 +44,11 @@ def load_module_from_github(feedback=None):
         feedback.pushInfo(f"ls2: {dir(AuthenticatieProxyAcmAwv)}    ")
         import Locatieservices2
 
-    return loaded_modules
+    return loaded_modules, AuthenticatieProxyAcmAwv
 
 
 def main(parameters, feedback=None):
-    loaded_modules = load_module_from_github(feedback)
+    loaded_modules, AuthenticatieProxyAcmAwv = load_module_from_github(feedback)
     feedback.pushInfo(str(  f"loaded_modules: {loaded_modules}"))
     feedback.pushInfo(str(dir(loaded_modules["AuthenticatieProxyAcmAwv"])))
     feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
