@@ -41,6 +41,7 @@ def load_module_from_github(feedback=None):
             if feedback:
                 feedback.reportError(f"Fout bij importeren {module_name}: {e}", fatalError=False)
         import AuthenticatieProxyAcmAwv
+        feedback.pushInfo(f"ls2: {dir(AuthenticatieProxyAcmAwv)}    ")
         import Locatieservices2
 
     return loaded_modules
