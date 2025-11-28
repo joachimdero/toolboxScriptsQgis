@@ -32,7 +32,7 @@ def load_module_from_github(feedback=None):
             if module_name in sys.modules:
                 module = importlib.reload(sys.modules[module_name])
             else:
-                module = importlib.import_module(module_name)
+                #module = importlib.import_module(module_name)
                 import module_name
 
             loaded_modules[module_name] = module
@@ -41,11 +41,11 @@ def load_module_from_github(feedback=None):
         except Exception as e:
             if feedback:
                 feedback.reportError(f"Fout bij importeren {module_name}: {e}", fatalError=False)
-        import AuthenticatieProxyAcmAwv
-        reload AuthenticatieProxyAcmAwv
+        # import AuthenticatieProxyAcmAwv
+        # reload AuthenticatieProxyAcmAwv
         feedback.pushInfo(f"ls2: {dir(AuthenticatieProxyAcmAwv)}    ")
-        import Locatieservices2
-        reload Locatieservices2
+        # import Locatieservices2
+        # reload Locatieservices2
 
     return loaded_modules, AuthenticatieProxyAcmAwv
 
