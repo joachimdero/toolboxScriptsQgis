@@ -40,6 +40,7 @@ def load_module_from_github(feedback=None):
         except Exception as e:
             if feedback:
                 feedback.reportError(f"Fout bij importeren {module_name}: {e}", fatalError=False)
+        import AuthenticatieProxyAcmAwv
 
     return loaded_modules
 
@@ -51,7 +52,7 @@ def main(parameters, feedback=None):
     feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
 
 
-    feedback.pushInfo("einde")
+    feedback.pushInfo(f"ls2: {dir(Locatieservices2)}    ")
     feedback.pushInfo("einde")
 
 
