@@ -54,6 +54,7 @@ def main(parameters, feedback=None):
 
 
     feedback.pushInfo(f"ls2: {dir(AuthenticatieProxyAcmAwv)}    ")
+    feedback.pushInfo(f"ls2: {dir(Locatieservices2)}    ")
     feedback.pushInfo("einde")
 
 
