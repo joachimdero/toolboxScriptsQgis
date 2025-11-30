@@ -3,6 +3,9 @@ import json
 import os
 import sys
 import urllib
+from qgis.core import (
+    QgsFeatureRequest,
+)
 
 
 def load_module_from_github(feedback=None):
