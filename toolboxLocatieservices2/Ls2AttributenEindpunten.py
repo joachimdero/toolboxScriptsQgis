@@ -60,7 +60,7 @@ def main(self, context, parameters, feedback=None):
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
 
     for row in layer.getFeatures(req):
-        feedback.pushInfo(row)
+        feedback.pushInfo(str(row.attributes()))
 
     feedback.pushInfo("einde3")
 
