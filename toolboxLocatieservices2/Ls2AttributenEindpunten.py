@@ -56,7 +56,7 @@ def main(self, context, parameters, feedback=None):
     layer = self.parameterAsSource(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
     req = QgsFeatureRequest()
-    req.setSubsetOfAttributes(parameters["f_wegnummer"], layer.fields())  # enkel deze velden
+    req.setSubsetOfAttributes([parameters["f_wegnummer"],], layer.fields())  # enkel deze velden
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
 
     for row in layer.getFeatures(req):
