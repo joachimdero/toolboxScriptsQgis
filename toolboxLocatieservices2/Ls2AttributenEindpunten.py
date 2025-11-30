@@ -62,6 +62,6 @@ def main(self, context, parameters, feedback=None):
     for row in layer.getFeatures(req):
         feedback.pushInfo(str(row.attributes()))
 
-    feedback.pushInfo("einde3")
+    feedback.pushInfo("einde")
 
 
