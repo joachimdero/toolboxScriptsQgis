@@ -4,7 +4,7 @@ import os
 import sys
 import urllib
 from qgis.core import (
-    QgsFeatureRequest,
+    QgsFeatureRequest
 )
 
 
