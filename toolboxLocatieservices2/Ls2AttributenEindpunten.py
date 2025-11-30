@@ -48,12 +48,17 @@ def main(parameters, feedback=None):
     loaded_modules = load_module_from_github(feedback)
     import Locatieservices2
     import AuthenticatieProxyAcmAwv
-    # feedback.pushInfo(str(  f"loaded_modules: {loaded_modules}"))
-    # feedback.pushInfo(str(dir(loaded_modules["AuthenticatieProxyAcmAwv"])))
-    # feedback.pushInfo(str(dir(loaded_modules["Locatieservices2"])))
 
+    # lees data
+    layer = parameters["INPUT"]
+    feedback.pushInfo(f"layer: {parameters[layer]}")
+    req = QgsFeatureRequest()
+    req.setSubsetOfAttributes(parameters["f_wegnummer"], layer.fields())  # enkel deze velden
+    idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
 
-    feedback.pushInfo(f"ls2: {dir(Locatieservices2)}    ")
-    feedback.pushInfo("einde")
+    for row in layer.getFeatures(req):
+        feedback.pushInfo(row)
+
+    feedback.pushInfo("einde3")
 
 
