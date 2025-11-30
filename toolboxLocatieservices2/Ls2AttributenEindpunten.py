@@ -44,13 +44,13 @@ def load_module_from_github(feedback=None):
     return loaded_modules
 
 
-def main(parameters, feedback=None):
+def main(self, context, parameters, feedback=None):
     loaded_modules = load_module_from_github(feedback)
     import Locatieservices2
     import AuthenticatieProxyAcmAwv
 
     # lees data
-    layer = parameters["INPUT"]
+    layer = self.parameterAsSource(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {parameters[layer]}")
     req = QgsFeatureRequest()
     req.setSubsetOfAttributes(parameters["f_wegnummer"], layer.fields())  # enkel deze velden
