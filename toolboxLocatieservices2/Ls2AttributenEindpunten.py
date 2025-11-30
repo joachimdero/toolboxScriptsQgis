@@ -52,7 +52,6 @@ def main(self, context, parameters, feedback=None):
     import Locatieservices2
     import AuthenticatieProxyAcmAwv
 
-
     # lees data
     layer = self.parameterAsSource(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
