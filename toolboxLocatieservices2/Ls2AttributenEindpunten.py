@@ -53,7 +53,7 @@ def main(self, context, parameters, feedback=None):
     import AuthenticatieProxyAcmAwv
 
     # lees data
-    layer = self.parameterAsLayer(parameters, 'INPUT', context)
+    layer = self.parameterAsSource(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
     req = QgsFeatureRequest()
     req.setSubsetOfAttributes(parameters["f_wegnummer"], layer.fields())  # enkel deze velden
