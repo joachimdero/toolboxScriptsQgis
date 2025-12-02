@@ -106,7 +106,7 @@ def main(self, context, parameters, feedback=None):
     omgeving = "productie"
     auth_type = "cookie"
     if auth_type == "cookie":
-        session = auth.prepareSession(cookie=cookie)
+        session = auth.prepareSession(cookie=parameters["cookie"])
         session = auth.proxieHandler(session)
 
     responses = Ls2.requestLs2Puntlocatie(locaties, OMGEVING, parameters["zoekafstand"], crs_id, session, parameters["gebruik_kant_van_de_weg"])
