@@ -106,6 +106,8 @@ def main(self, context, parameters, feedback=None):
     session = auth.prepareSession(cookie=parameters["cookie"])
     session = auth.proxieHandler(session)
 
+    feedback.pushInfo(f"session:{str(session)}")
+
     responses = Ls2.request_ls2_puntlocatie(
         locaties=locaties,
         omgeving=OMGEVING,
