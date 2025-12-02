@@ -53,14 +53,35 @@ def main(self, context, parameters, feedback=None):
     import AuthenticatieProxyAcmAwv
 
     # lees data
-    layer = self.parameterAsSource(parameters, 'INPUT', context)
+    layer = self.parameterAsLayer(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
+    crs_id = layer.crs().authid()
     req = QgsFeatureRequest()
-    req.setSubsetOfAttributes([parameters["f_wegnummer"],], layer.fields())  # enkel deze velden
+
+    if parameters["f_wegnummer"] not in (None, ''):
+        feedback.pushInfo(f"veld wegnummer: {parameters['f_wegnummer']}")
+        f_subset = [parameters["f_wegnummer"],]
+    else:
+        f_subset = []
+
+    req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
 
-    for row in layer.getFeatures(req):
+    for i, row in enumerate(layer.getFeatures(req)):
+        subset = {v: row.attribute(v) for v in f_subset}
+        feedback.pushInfo(str(subset))
+
+        geom = row.geometry()
+        first_point = geom.vertexAt(0)  # eerste vertex
+        x, y = first_point.x(), first_point.y()
+
+        locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
+                                "coordinates": [x, y]}}
+
         feedback.pushInfo(str(row.attributes()))
+        feedback.pushInfo(str(locatie))
+        if i > 5:
+            break
 
     feedback.pushInfo("einde")
 
