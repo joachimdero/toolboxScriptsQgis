@@ -88,8 +88,8 @@ def main(self, context, parameters, feedback=None):
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
                                 "coordinates": [x, y]}, "wegnummer": {"nummer": wegnummer},}
 
-        feedback.pushInfo(str(row.attributes()))
-        feedback.pushInfo(str(locatie))
+        feedback.pushInfo(f"attributes:{str(row.attributes())}")
+        feedback.pushInfo(f"locatie:{str(locatie)}")
         if i > 5:
             break
 
