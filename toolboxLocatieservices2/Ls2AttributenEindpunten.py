@@ -88,7 +88,9 @@ def main(self, context, parameters, feedback=None):
         wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
 
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
-                                "coordinates": [x, y]}, "wegnummer": {"nummer": wegnummer},}
+                                "coordinates": [x, y]}}
+        if wegnummer is not None:
+            locatie["wegnummer"] = {"nummer": wegnummer}
 
         feedback.pushInfo(f"attributes:{str(row.attributes())}")
         feedback.pushInfo(f"locatie:{json.dumps(locatie)}")
