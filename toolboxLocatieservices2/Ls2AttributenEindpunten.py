@@ -78,7 +78,7 @@ def main(self, context, parameters, feedback=None):
 
     for i, row in enumerate(layer.getFeatures(req)):
 
-        feedback.pushInfo(i)
+        feedback.pushInfo(str(i)
         subset = {v: row.attribute(v) for v in f_subset}
         feedback.pushInfo(str(subset))
 
