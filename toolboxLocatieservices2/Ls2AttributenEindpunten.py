@@ -59,7 +59,7 @@ def maak_json_locatie(feedback, layer, req,  crs_id, f_subset, idx_wegnummer):
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
         x, y = first_point.x(), first_point.y()
-        wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 #else None
+        wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else 1
 
         feedback.pushInfo(f"wegnummer:{wegnummer}")
 
