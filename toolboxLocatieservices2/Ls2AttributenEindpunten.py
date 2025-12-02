@@ -8,6 +8,8 @@ from qgis.core import (
     QgsWkbTypes,
 )
 
+OMGEVING = "productie"
+
 
 def load_module_from_github(feedback=None):
     def load_json_modules():
@@ -76,7 +78,7 @@ def maak_json_locatie(feedback, layer, req,  crs_id, f_subset, idx_wegnummer):
 def main(self, context, parameters, feedback=None):
     loaded_modules = load_module_from_github(feedback)
     import Locatieservices2
-    import AuthenticatieProxyAcmAwv
+    import AuthenticatieProxyAcmAwv as auth
 
     layer = self.parameterAsLayer(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
@@ -97,6 +99,15 @@ def main(self, context, parameters, feedback=None):
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
     locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
     feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
+
+    # maak sessie
+    omgeving = "productie"
+    auth_type = "cookie"
+    if auth_type == "cookie":
+        session = auth.prepareSession(cookie=cookie)
+        session = auth.proxieHandler(session)
+
+    #responses = Ls2.requestLs2Puntlocatie(locaties, OMGEVING, zoekafstand, crs, session, gebruik_kant_van_de_weg)
 
     feedback.pushInfo("einde")
 
