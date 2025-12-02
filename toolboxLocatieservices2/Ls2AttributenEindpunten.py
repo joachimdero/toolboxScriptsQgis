@@ -77,7 +77,7 @@ def maak_json_locatie(feedback, layer, req,  crs_id, f_subset, idx_wegnummer):
 
 def main(self, context, parameters, feedback=None):
     loaded_modules = load_module_from_github(feedback)
-    import Locatieservices2
+    import Locatieservices2 as Ls2
     import AuthenticatieProxyAcmAwv as auth
 
     layer = self.parameterAsLayer(parameters, 'INPUT', context)
@@ -107,7 +107,7 @@ def main(self, context, parameters, feedback=None):
         session = auth.prepareSession(cookie=cookie)
         session = auth.proxieHandler(session)
 
-    #responses = Ls2.requestLs2Puntlocatie(locaties, OMGEVING, zoekafstand, crs, session, gebruik_kant_van_de_weg)
+    responses = Ls2.requestLs2Puntlocatie(locaties, OMGEVING, parameters["zoekafstand"], crs_id, session, parameters["gebruik_kant_van_de_weg"])
 
     feedback.pushInfo("einde")
 
