@@ -8,7 +8,7 @@ from qgis.core import (
     QgsWkbTypes,
 )
 
-OMGEVING = "productie"
+OMGEVING = "apps" #productie
 
 
 def load_module_from_github(feedback=None):
@@ -109,7 +109,17 @@ def main(self, context, parameters, feedback=None):
         session = auth.prepareSession(cookie=parameters["cookie"])
         session = auth.proxieHandler(session)
 
-    responses = Ls2.request_ls2_puntlocatie(locaties, OMGEVING, parameters["zoekafstand"], crs_id, session, parameters["gebruik_kant_van_de_weg"])
+    responses = Ls2.request_ls2_puntlocatie(
+        locaties=locaties,
+        omgeving=OMGEVING,
+        zoekafstand=parameters["zoekafstand"],
+        crs=crs_id,
+        session=session,
+        gebruik_kant_van_de_weg=parameters["gebruik_kant_van_de_weg"],
+        feedback=feedback
+    )
+
+    feedback.pushInfo(f":{str(responses)}")
 
     feedback.pushInfo("einde")
 
