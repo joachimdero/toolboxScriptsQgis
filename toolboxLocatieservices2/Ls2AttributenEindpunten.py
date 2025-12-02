@@ -89,7 +89,7 @@ def main(self, context, parameters, feedback=None):
                                 "coordinates": [x, y]}, "wegnummer": {"nummer": wegnummer},}
 
         feedback.pushInfo(f"attributes:{str(row.attributes())}")
-        feedback.pushInfo(f"locatie:{str(locatie)}")
+        feedback.pushInfo(f"locatie:{json.dumps(locatie)}")
         if i > 5:
             break
 
