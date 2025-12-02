@@ -83,7 +83,7 @@ def main(self, context, parameters, feedback=None):
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
         x, y = first_point.x(), first_point.y()
-        wegnummer = row.attributes()[idx_wegnummer] if idx_wegnummer != -1 else None
+        wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
 
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
                                 "coordinates": [x, y]}, "wegnummer": {"nummer": wegnummer},}
