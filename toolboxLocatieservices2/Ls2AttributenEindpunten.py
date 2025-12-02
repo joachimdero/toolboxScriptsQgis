@@ -47,35 +47,8 @@ def load_module_from_github(feedback=None):
 
     return loaded_modules
 
-
-def main(self, context, parameters, feedback=None):
-    loaded_modules = load_module_from_github(feedback)
-    import Locatieservices2
-    import AuthenticatieProxyAcmAwv
-
-    layer = self.parameterAsLayer(parameters, 'INPUT', context)
-    feedback.pushInfo(f"layer: {layer}")
-    crs_id = layer.crs().authid()
-    wkb_type = layer.wkbType()
-    geom_type = QgsWkbTypes.displayString(wkb_type)
-    feedback.pushInfo(f"Geometry type: {geom_type}")
-
-
-
-
-
-    # lees data
-    req = QgsFeatureRequest()
-
-    if parameters["f_wegnummer"] not in (None, ''):
-        feedback.pushInfo(f"veld wegnummer: {parameters['f_wegnummer']}")
-        f_subset = [parameters["f_wegnummer"],]
-    else:
-        f_subset = []
-
-    req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
-    idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
-
+def maak_json_locatie(layer, crs_id, f_subset, idx_wegnummer):
+    locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
 
         feedback.pushInfo(str(i))
@@ -92,10 +65,40 @@ def main(self, context, parameters, feedback=None):
         if wegnummer is not None:
             locatie["wegnummer"] = {"nummer": wegnummer}
 
+        locaties.append(locatie)
+
         feedback.pushInfo(f"attributes:{str(row.attributes())}")
         feedback.pushInfo(f"locatie:{json.dumps(locatie)}")
         if i > 5:
             break
+
+    return locaties
+
+def main(self, context, parameters, feedback=None):
+    loaded_modules = load_module_from_github(feedback)
+    import Locatieservices2
+    import AuthenticatieProxyAcmAwv
+
+    layer = self.parameterAsLayer(parameters, 'INPUT', context)
+    feedback.pushInfo(f"layer: {layer}")
+    crs_id = layer.crs().authid()
+    wkb_type = layer.wkbType()
+    geom_type = QgsWkbTypes.displayString(wkb_type)
+    feedback.pushInfo(f"Geometry type: {geom_type}")
+
+    # lees data
+    req = QgsFeatureRequest()
+
+    if parameters["f_wegnummer"] not in (None, ''):
+        feedback.pushInfo(f"veld wegnummer: {parameters['f_wegnummer']}")
+        f_subset = [parameters["f_wegnummer"],]
+    else:
+        f_subset = []
+
+    req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
+    idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
+    locaties = maak_json_locatie(layer, crs_id, f_subset, idx_wegnummer)
+    feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
 
     feedback.pushInfo("einde")
 
