@@ -47,7 +47,7 @@ def load_module_from_github(feedback=None):
 
     return loaded_modules
 
-def maak_json_locatie(layer, crs_id, f_subset, idx_wegnummer):
+def maak_json_locatie(feedback, layer, req,  crs_id, f_subset, idx_wegnummer):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
 
@@ -97,7 +97,7 @@ def main(self, context, parameters, feedback=None):
 
     req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
-    locaties = maak_json_locatie(layer, crs_id, f_subset, idx_wegnummer)
+    locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
     feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
 
     feedback.pushInfo("einde")
