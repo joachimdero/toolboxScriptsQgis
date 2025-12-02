@@ -50,7 +50,6 @@ def load_module_from_github(feedback=None):
 def maak_json_locatie(feedback, layer, req,  crs_id, f_subset, idx_wegnummer):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
-
         feedback.pushInfo(str(i))
         subset = {v: row.attribute(v) for v in f_subset}
         feedback.pushInfo(str(subset))
