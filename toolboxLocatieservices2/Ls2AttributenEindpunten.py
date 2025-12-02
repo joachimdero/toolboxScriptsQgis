@@ -4,7 +4,8 @@ import os
 import sys
 import urllib
 from qgis.core import (
-    QgsFeatureRequest
+    QgsFeatureRequest,
+    QgsWkbTypes,
 )
 
 
@@ -52,10 +53,18 @@ def main(self, context, parameters, feedback=None):
     import Locatieservices2
     import AuthenticatieProxyAcmAwv
 
-    # lees data
     layer = self.parameterAsLayer(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
     crs_id = layer.crs().authid()
+    wkb_type = layer.wkbType()
+    geom_type = QgsWkbTypes.displayString(wkb_type)
+    feedback.pushInfo(f"Geometry type: {geom_type}")
+
+
+
+
+
+    # lees data
     req = QgsFeatureRequest()
 
     if parameters["f_wegnummer"] not in (None, ''):
@@ -74,9 +83,10 @@ def main(self, context, parameters, feedback=None):
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
         x, y = first_point.x(), first_point.y()
+        wegnummer = row.attributes()[idx_wegnummer] if idx_wegnummer != -1 else None
 
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
-                                "coordinates": [x, y]}}
+                                "coordinates": [x, y]}, "wegnummer": {"nummer": wegnummer},}
 
         feedback.pushInfo(str(row.attributes()))
         feedback.pushInfo(str(locatie))
