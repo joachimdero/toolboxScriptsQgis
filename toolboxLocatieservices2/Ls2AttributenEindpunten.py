@@ -77,6 +77,8 @@ def main(self, context, parameters, feedback=None):
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
 
     for i, row in enumerate(layer.getFeatures(req)):
+
+        feedback.pushInfo(i)
         subset = {v: row.attribute(v) for v in f_subset}
         feedback.pushInfo(str(subset))
 
