@@ -61,6 +61,8 @@ def maak_json_locatie(feedback, layer, req,  crs_id, f_subset, idx_wegnummer):
         x, y = first_point.x(), first_point.y()
         wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
 
+        feedback.pushInfo(f"wegnummer:{wegnummer}")
+
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
                                 "coordinates": [x, y]}}
         if wegnummer is not None:
