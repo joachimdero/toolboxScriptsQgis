@@ -88,7 +88,6 @@ def main(self, context, parameters, feedback=None):
 
     # lees data
     req = QgsFeatureRequest()
-
     if parameters["f_wegnummer"] not in (None, ''):
         feedback.pushInfo(f"veld wegnummer: {parameters['f_wegnummer']}")
         f_subset = [parameters["f_wegnummer"],]
