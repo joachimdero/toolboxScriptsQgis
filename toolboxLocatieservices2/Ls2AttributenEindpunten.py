@@ -115,7 +115,7 @@ def main(self, context, parameters, feedback=None):
         zoekafstand=parameters["zoekafstand"],
         crs=crs_id,
         session=session,
-        gebruik_kant_van_de_weg=parameters["gebruik_kant_van_de_weg"],
+        gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
         feedback=feedback
     )
 
