@@ -103,11 +103,8 @@ def main(self, context, parameters, feedback=None):
     feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
 
     # maak sessie
-    omgeving = "productie"
-    auth_type = "cookie"
-    if auth_type == "cookie":
-        session = auth.prepareSession(cookie=parameters["cookie"])
-        session = auth.proxieHandler(session)
+    session = auth.prepareSession(cookie=parameters["cookie"])
+    session = auth.proxieHandler(session)
 
     responses = Ls2.request_ls2_puntlocatie(
         locaties=locaties,
