@@ -169,6 +169,8 @@ def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_o
 
     for feat, response in zip(layer.getFeatures(), responses):
         attrs = {}
+        feedback.pushInfo(f"response:{str(response)}")
+        feedback.pushInfo(f"feat:{str(feat)}")
         if 'success' in response.keys():
             if 'relatief' in response.keys():
                 relatief = response['relatief']
@@ -227,8 +229,6 @@ def main(self, context, parameters, feedback=None):
     )
 
     feedback.pushInfo(f"responses:{str(responses)}")
-
-    # ik wil velden , refpunt_opschrift, refpunt_afstand toevoegen aan de layer, de specificaties van de velden zijn terug te vinden in F_TYPE in Locatieservices2.py
 
     # add refpunt fields according to F_TYPE in Locatieservices2.py
     # language: python
