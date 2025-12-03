@@ -169,11 +169,12 @@ def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_o
 
     for feat, response in zip(layer.getFeatures(), responses):
         attrs = {}
-        feedback.pushInfo(f"response:{str(response)}")
+        feedback.pushInfo(f"response.keys:{str(response.keys)}")
         feedback.pushInfo(f"feat:{str(feat)}")
         if 'success' in response.keys():
-            if 'relatief' in response.keys():
-                relatief = response['relatief']
+            success = response['success']
+            if 'relatief' in success.keys():
+                relatief = success['relatief']
                 refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
                 refpunt_afstand = relatief['afstand']
