@@ -75,6 +75,7 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
 
     return locaties
 
+
 def add_locatie_fields(layer, fields_to_add, feedback):
     from Locatieservices2 import F_TYPE
 
@@ -136,6 +137,28 @@ def add_locatie_fields(layer, fields_to_add, feedback):
     else:
         feedback.pushInfo("No new fields to add")
 
+
+def schrijf_resultaten_naar_layer(layer, f_response = ["refpunt_opschrift", "refpunt_afstand"], responses={}, feedback=None):
+    if not layer.isEditable():
+        layer.startEditing()
+
+    for feat, response in zip(layer.getFeatures(), responses):
+        attrs = {}
+        if 'success' in response.keys():
+            refpunt_wegnr = response['relatief']['referentiepunt']['wegnummer']['nummer']
+            refpunt_opschrift = float((response['relatief']['referentiepunt']['opschrift']))
+            refpunt_afstand = response['relatief']['afstand']
+        refpunt_opschrift = response.get("refpunt_opschrift")
+        for fname in f_response:
+            if fname in response:
+                attrs[layer.fields().indexFromName(fname)] = response[fname]
+        if attrs:
+            layer.dataProvider().changeAttributeValues({feat.id(): attrs})
+
+    layer.commitChanges()
+    feedback.pushInfo("Wrote results to layer")
+
+
 def main(self, context, parameters, feedback=None):
     loaded_modules = load_module_from_github(feedback)
     import Locatieservices2 as Ls2
@@ -175,7 +198,7 @@ def main(self, context, parameters, feedback=None):
         feedback=feedback
     )
 
-    feedback.pushInfo(f":{str(responses)}")
+    feedback.pushInfo(f"responses:{str(responses)}")
 
     # ik wil velden , refpunt_opschrift, refpunt_afstand toevoegen aan de layer, de specificaties van de velden zijn terug te vinden in F_TYPE in Locatieservices2.py
 
@@ -183,10 +206,5 @@ def main(self, context, parameters, feedback=None):
     # language: python
     fields_to_add = ["refpunt_opschrift", "refpunt_afstand"]
     add_locatie_fields(layer, fields_to_add, feedback)
-
-
-
-
-
 
     feedback.pushInfo("einde")
