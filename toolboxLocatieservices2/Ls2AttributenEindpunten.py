@@ -183,6 +183,10 @@ def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_o
                 attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
                 attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
                 attrs[layer.fields().indexFromName("refpunt_afstand")] = refpunt_afstand
+            else:
+                feedback.pushInfo("No 'relatief' key in success response")
+        else:
+            feedback.pushInfo("No 'success' key in response")
         if attrs:
             layer.dataProvider().changeAttributeValues({feat.id(): attrs})
 
@@ -218,6 +222,9 @@ def main(self, context, parameters, feedback=None):
     session = auth.proxieHandler(session)
 
     feedback.pushInfo(f"session:{str(session)}")
+
+    # verzamel oid
+
 
     responses = Ls2.request_ls2_puntlocatie(
         locaties=locaties,
