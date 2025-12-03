@@ -176,9 +176,10 @@ def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_o
                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
                 refpunt_afstand = relatief['afstand']
                 feedback.pushInfo(f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
-        for fname in f_response:
-            if fname in response:
-                attrs[layer.fields().indexFromName(fname)] = response[fname]
+
+                attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
+                attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
+                attrs[layer.fields().indexFromName("refpunt_afstand")] = refpunt_afstand
         if attrs:
             layer.dataProvider().changeAttributeValues({feat.id(): attrs})
 
