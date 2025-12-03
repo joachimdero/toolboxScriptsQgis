@@ -54,7 +54,7 @@ def load_module_from_github(feedback=None):
 
 def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
     locaties = []
-    for i, row in enumerate(layer.getFeatures(req))
+    for i, row in enumerate(layer.getFeatures(req)):
         # subset = {v: row.attribute(v) for v in f_subset}
         # feedback.pushInfo(str(subset))
 
@@ -122,6 +122,7 @@ def main(self, context, parameters, feedback=None):
     # add refpunt fields according to F_TYPE in Locatieservices2.py
     # language: python
     fields_to_add = ["refpunt_opschrift", "refpunt_afstand"]
+    add_locatien_fields(layer, fields_to_add, feedback)
 
 def add_locatien_fields(layer, fields_to_add, feedback):
     from Locatieservices2 import F_TYPE
