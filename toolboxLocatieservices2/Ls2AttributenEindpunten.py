@@ -55,8 +55,8 @@ def load_module_from_github(feedback=None):
 def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
-        # subset = {v: row.attribute(v) for v in f_subset}
-        # feedback.pushInfo(str(subset))
+        subset = {v: row.attribute(v) for v in f_subset}
+        feedback.pushInfo(str(subset))
 
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
@@ -77,14 +77,17 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
 
 
 def add_locatie_fields(layer, fields_to_add, feedback):
-    from Locatieservices2 import F_TYPE
+    try:
+        from Locatieservices2 import F_TYPE
+    except Exception:
+        F_TYPE = {}
 
     new_fields = []
 
     _type_map = {
-        "TEXT": QVariant.String,
-        "DOUBLE": QVariant.Double,
-        "LONG": QVariant.Int,
+        "TEXT": int(QVariant.String),
+        "DOUBLE": int(QVariant.Double),
+        "LONG": int(QVariant.Int),
     }
 
     for fname in fields_to_add:
@@ -111,13 +114,34 @@ def add_locatie_fields(layer, fields_to_add, feedback):
                 length = 0
                 prec = 0
 
-            # Normalize raw_type: if it's a string, map to a QVariant type; otherwise use as-is
+            # Normalize raw_type to an int value acceptable by QgsField
             if isinstance(raw_type, str):
-                ftype = _type_map.get(raw_type.upper(), QVariant.String)
+                qtype = _type_map.get(raw_type.upper(), int(QVariant.String))
             else:
-                ftype = raw_type
+                # raw_type may be a QVariant.Type enum or an int-like
+                try:
+                    qtype = int(raw_type)
+                except Exception:
+                    qtype = int(QVariant.String)
 
-            fld = QgsField(fname, ftype, "", length, prec)
+            # Ensure length and precision are ints
+            try:
+                length = int(length)
+            except Exception:
+                length = 0
+            try:
+                prec = int(prec)
+            except Exception:
+                prec = 0
+
+            # Try constructing the QgsField with normalized types, fallback to simpler constructor on failure
+            try:
+                fld = QgsField(fname, qtype, "", length, prec)
+            except TypeError:
+                try:
+                    fld = QgsField(fname, qtype)
+                except Exception:
+                    fld = QgsField(fname, int(QVariant.String))
 
         if layer.fields().indexFromName(fname) == -1:
             new_fields.append(fld)
