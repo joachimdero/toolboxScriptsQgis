@@ -235,4 +235,11 @@ def main(self, context, parameters, feedback=None):
     fields_to_add = ["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
     add_locatie_fields(layer, fields_to_add, feedback)
 
+    schrijf_resultaten_naar_layer(
+        layer=layer,
+        f_response=["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
+        responses=responses,
+        feedback=feedback
+    )
+
     feedback.pushInfo("einde")
