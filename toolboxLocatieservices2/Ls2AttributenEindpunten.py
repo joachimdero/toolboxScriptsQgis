@@ -75,56 +75,7 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
 
     return locaties
 
-
-def main(self, context, parameters, feedback=None):
-    loaded_modules = load_module_from_github(feedback)
-    import Locatieservices2 as Ls2
-    import AuthenticatieProxyAcmAwv as auth
-
-    layer = self.parameterAsLayer(parameters, 'INPUT', context)
-    crs_id = layer.crs().authid()
-    wkb_type = layer.wkbType()
-    geom_type = QgsWkbTypes.displayString(wkb_type)
-    feedback.pushInfo(f"Geometry type: {geom_type}")
-
-    # lees data
-    req = QgsFeatureRequest()
-    if parameters["f_wegnummer"] not in (None, ''):
-        f_subset = [parameters["f_wegnummer"], ]
-    else:
-        f_subset = []
-
-    req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
-    idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
-    locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
-    feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
-
-    # maak sessie
-    session = auth.prepareSession(cookie=parameters["cookie"])
-    session = auth.proxieHandler(session)
-
-    feedback.pushInfo(f"session:{str(session)}")
-
-    responses = Ls2.request_ls2_puntlocatie(
-        locaties=locaties,
-        omgeving=OMGEVING,
-        zoekafstand=parameters["zoekafstand"],
-        crs=crs_id,
-        session=session,
-        gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
-        feedback=feedback
-    )
-
-    feedback.pushInfo(f":{str(responses)}")
-
-    # ik wil velden , refpunt_opschrift, refpunt_afstand toevoegen aan de layer, de specificaties van de velden zijn terug te vinden in F_TYPE in Locatieservices2.py
-
-    # add refpunt fields according to F_TYPE in Locatieservices2.py
-    # language: python
-    fields_to_add = ["refpunt_opschrift", "refpunt_afstand"]
-    add_locatien_fields(layer, fields_to_add, feedback)
-
-def add_locatien_fields(layer, fields_to_add, feedback):
+def add_locatie_fields(layer, fields_to_add, feedback):
     from Locatieservices2 import F_TYPE
 
     new_fields = []
@@ -184,6 +135,56 @@ def add_locatien_fields(layer, fields_to_add, feedback):
         feedback.pushInfo(f"Added fields: {[f.name() for f in new_fields]}")
     else:
         feedback.pushInfo("No new fields to add")
+
+def main(self, context, parameters, feedback=None):
+    loaded_modules = load_module_from_github(feedback)
+    import Locatieservices2 as Ls2
+    import AuthenticatieProxyAcmAwv as auth
+
+    layer = self.parameterAsLayer(parameters, 'INPUT', context)
+    crs_id = layer.crs().authid()
+    wkb_type = layer.wkbType()
+    geom_type = QgsWkbTypes.displayString(wkb_type)
+    feedback.pushInfo(f"Geometry type: {geom_type}")
+
+    # lees data
+    req = QgsFeatureRequest()
+    if parameters["f_wegnummer"] not in (None, ''):
+        f_subset = [parameters["f_wegnummer"], ]
+    else:
+        f_subset = []
+
+    req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
+    idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
+    locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
+    feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
+
+    # maak sessie
+    session = auth.prepareSession(cookie=parameters["cookie"])
+    session = auth.proxieHandler(session)
+
+    feedback.pushInfo(f"session:{str(session)}")
+
+    responses = Ls2.request_ls2_puntlocatie(
+        locaties=locaties,
+        omgeving=OMGEVING,
+        zoekafstand=parameters["zoekafstand"],
+        crs=crs_id,
+        session=session,
+        gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
+        feedback=feedback
+    )
+
+    feedback.pushInfo(f":{str(responses)}")
+
+    # ik wil velden , refpunt_opschrift, refpunt_afstand toevoegen aan de layer, de specificaties van de velden zijn terug te vinden in F_TYPE in Locatieservices2.py
+
+    # add refpunt fields according to F_TYPE in Locatieservices2.py
+    # language: python
+    fields_to_add = ["refpunt_opschrift", "refpunt_afstand"]
+    add_locatie_fields(layer, fields_to_add, feedback)
+
+
 
 
 
