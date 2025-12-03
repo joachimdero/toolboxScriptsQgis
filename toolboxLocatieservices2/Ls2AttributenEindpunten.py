@@ -55,8 +55,8 @@ def load_module_from_github(feedback=None):
 def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
-        subset = {v: row.attribute(v) for v in f_subset}
-        feedback.pushInfo(str(subset))
+        # subset = {v: row.attribute(v) for v in f_subset}
+        # feedback.pushInfo(str(subset))
 
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
@@ -162,17 +162,20 @@ def add_locatie_fields(layer, fields_to_add, feedback):
         feedback.pushInfo("No new fields to add")
 
 
-def schrijf_resultaten_naar_layer(layer, f_response = ["refpunt_opschrift", "refpunt_afstand"], responses={}, feedback=None):
+def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
+                                  responses={}, feedback=None):
     if not layer.isEditable():
         layer.startEditing()
 
     for feat, response in zip(layer.getFeatures(), responses):
         attrs = {}
         if 'success' in response.keys():
-            refpunt_wegnr = response['relatief']['referentiepunt']['wegnummer']['nummer']
-            refpunt_opschrift = float((response['relatief']['referentiepunt']['opschrift']))
-            refpunt_afstand = response['relatief']['afstand']
-        refpunt_opschrift = response.get("refpunt_opschrift")
+            if 'relatief' in response.keys():
+                relatief = response['relatief']
+                refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
+                refpunt_opschrift = relatief['referentiepunt']['opschrift']
+                refpunt_afstand = relatief['afstand']
+                feedback.pushInfo(f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
         for fname in f_response:
             if fname in response:
                 attrs[layer.fields().indexFromName(fname)] = response[fname]
@@ -228,7 +231,7 @@ def main(self, context, parameters, feedback=None):
 
     # add refpunt fields according to F_TYPE in Locatieservices2.py
     # language: python
-    fields_to_add = ["refpunt_opschrift", "refpunt_afstand"]
+    fields_to_add = ["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
     add_locatie_fields(layer, fields_to_add, feedback)
 
     feedback.pushInfo("einde")
