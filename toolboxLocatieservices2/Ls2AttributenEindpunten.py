@@ -61,6 +61,9 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
         x, y = first_point.x(), first_point.y()
+
+        fid = row.id()
+        feedback.pushInfo(f"Feature id:{fid}, x:{x}, y:{y}")
         wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
 
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
