@@ -235,6 +235,8 @@ def main(self, context, parameters, feedback=None):
         feedback.pushInfo(f'behandel volgende records:{str(fid_list[start:start + limit])[:200]} van {len(fid_list)}')
         feedback.pushInfo(f'objectids_selectie: {str(objectids_selectie)}')
 
+        start += limit
+
 
 
     locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
