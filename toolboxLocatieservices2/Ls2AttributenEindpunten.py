@@ -217,6 +217,21 @@ def main(self, context, parameters, feedback=None):
 
     req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
+
+    # verzamel oid
+    fid_list = layer.selectedFeatureIds()  # lijst van FIDs van geselecteerde features
+    feedback.pushInfo(f"id_list:{str(fid_list)}")
+    start=0
+    limit = parameters["aantal elementen per request"]
+
+    while start < len(fid_list):
+        objectids_selectie = objectids[start:start + limit]
+
+        feedback.pushInfo(f'behandel volgende records:{str(fid_list[start:start + limit])[:200]} van {len(fid_list)}')
+        feedback.pushInfo(f'objectids_selectie: {str(objectids_selectie)}')
+
+
+
     locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
     feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
 
@@ -224,7 +239,6 @@ def main(self, context, parameters, feedback=None):
     session = auth.prepareSession(cookie=parameters["cookie"])
     session = auth.proxieHandler(session)
 
-    feedback.pushInfo(f"session:{str(session)}")
 
     # verzamel oid
 
