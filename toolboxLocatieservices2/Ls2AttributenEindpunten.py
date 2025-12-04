@@ -208,6 +208,10 @@ def main(self, context, parameters, feedback=None):
     geom_type = QgsWkbTypes.displayString(wkb_type)
     feedback.pushInfo(f"Geometry type: {geom_type}")
 
+    # maak sessie
+    session = auth.prepareSession(cookie=parameters["cookie"])
+    session = auth.proxieHandler(session)
+
     # lees data
     req = QgsFeatureRequest()
     if parameters["f_wegnummer"] not in (None, ''):
@@ -224,6 +228,7 @@ def main(self, context, parameters, feedback=None):
     start=0
     limit = parameters["aantal elementen per request"]
 
+
     while start < len(fid_list):
         objectids_selectie = fid_list[start:start + limit]
 
@@ -235,9 +240,6 @@ def main(self, context, parameters, feedback=None):
     locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
     feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
 
-    # maak sessie
-    session = auth.prepareSession(cookie=parameters["cookie"])
-    session = auth.proxieHandler(session)
 
 
     # verzamel oid
