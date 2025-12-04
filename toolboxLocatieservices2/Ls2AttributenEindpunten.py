@@ -225,7 +225,7 @@ def main(self, context, parameters, feedback=None):
     limit = parameters["aantal elementen per request"]
 
     while start < len(fid_list):
-        objectids_selectie = objectids[start:start + limit]
+        objectids_selectie = fid_list[start:start + limit]
 
         feedback.pushInfo(f'behandel volgende records:{str(fid_list[start:start + limit])[:200]} van {len(fid_list)}')
         feedback.pushInfo(f'objectids_selectie: {str(objectids_selectie)}')
