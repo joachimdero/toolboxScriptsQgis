@@ -231,7 +231,6 @@ def main(self, context, parameters, feedback=None):
         # Geen selectie → neem alle FIDs van de laag
         fid_list = [f.id() for f in layer.getFeatures()]
 
-    feedback.pushInfo(f"id_list:{str(fid_list)}")
     start=0
     limit = parameters["aantal elementen per request"]
 
@@ -240,7 +239,6 @@ def main(self, context, parameters, feedback=None):
         objectids_selectie = fid_list[start:start + limit]
 
         feedback.pushInfo(f'behandel volgende records:{str(fid_list[start:start + limit])[:200]} van {len(fid_list)}')
-        feedback.pushInfo(f'objectids_selectie: {str(objectids_selectie)}')
 
         start += limit
 
