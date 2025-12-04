@@ -223,7 +223,14 @@ def main(self, context, parameters, feedback=None):
     idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
 
     # verzamel oid
-    fid_list = layer.selectedFeatureIds()  # lijst van FIDs van geselecteerde features
+
+    # Check of er geselecteerde features zijn
+    if layer.selectedFeatureCount() > 0:
+        fid_list = layer.selectedFeatureIds()  # geselecteerde FIDs
+    else:
+        # Geen selectie → neem alle FIDs van de laag
+        fid_list = [f.id() for f in layer.getFeatures()]
+
     feedback.pushInfo(f"id_list:{str(fid_list)}")
     start=0
     limit = parameters["aantal elementen per request"]
