@@ -239,7 +239,7 @@ def main(self, context, parameters, feedback=None):
         feedback.pushInfo(
             f'behandel volgende records: van fid{fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
         req = QgsFeatureRequest().setFilterFids(fid_selectie)
-        locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
+        locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geom_type)
 
         responses = Ls2.request_ls2_puntlocatie(
             locaties=locaties,
