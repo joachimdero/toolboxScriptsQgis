@@ -194,6 +194,8 @@ def main(self, context, parameters, feedback=None):
     import Locatieservices2 as Ls2
     import AuthenticatieProxyAcmAwv as auth
 
+    feedback.pushInfo("start")
+
     layer = self.parameterAsLayer(parameters, 'INPUT', context)
     crs_id = layer.crs().authid()
     wkb_type = layer.wkbType()
