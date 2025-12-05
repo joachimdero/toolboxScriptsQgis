@@ -55,9 +55,6 @@ def load_module_from_github(feedback=None):
 def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
-        # subset = {v: row.attribute(v) for v in f_subset}
-        # feedback.pushInfo(str(subset))
-
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
         x, y = first_point.x(), first_point.y()
@@ -165,12 +162,12 @@ def add_locatie_fields(layer, fields_to_add, feedback):
         feedback.pushInfo("No new fields to add")
 
 
-def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
+def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
                                   responses={}, feedback=None):
     if not layer.isEditable():
         layer.startEditing()
 
-    for feat, response in zip(layer.getFeatures(), responses):
+    for feat, response in zip(layer.getFeatures(req), responses):
         attrs = {}
         feedback.pushInfo(f"response.keys:{str(response.keys)}")
         feedback.pushInfo(f"feat:{str(feat)}")
@@ -181,7 +178,8 @@ def schrijf_resultaten_naar_layer(layer, f_response=["refpunt_wegnr", "refpunt_o
                 refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
                 refpunt_afstand = relatief['afstand']
-                feedback.pushInfo(f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
+                feedback.pushInfo(
+                    f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
 
                 attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
                 attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
@@ -212,68 +210,59 @@ def main(self, context, parameters, feedback=None):
     session = auth.prepareSession(cookie=parameters["cookie"])
     session = auth.proxieHandler(session)
 
-    # lees data
+    # voorbereiding data lezen
     req = QgsFeatureRequest()
-    if parameters["f_wegnummer"] not in (None, ''):
+    f_wegnummer = parameters["f_wegnummer"]
+
+    if f_wegnummer not in (None, ''):
         f_subset = [parameters["f_wegnummer"], ]
+        req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
+        idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
     else:
         f_subset = []
 
-    req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
-    idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
+    # add refpunt fields according to F_TYPE in Locatieservices2.py
+    fields_to_add = [f_wegnummer,"refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
+    add_locatie_fields(layer, fields_to_add, feedback)
+
 
     # verzamel oid
-    # Check of er geselecteerde features zijn
     if layer.selectedFeatureCount() > 0:
         fid_list = layer.selectedFeatureIds()  # geselecteerde FIDs
     else:
         # Geen selectie → neem alle FIDs van de laag
         fid_list = [f.id() for f in layer.getFeatures()]
 
-
-    start=0
+    start = 0
     limit = parameters["aantal elementen per request"]
-
-
     while start < len(fid_list):
         fid_selectie = fid_list[start:start + limit]
-        feedback.pushInfo(f'behandel volgende records: van fid{fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
+        feedback.pushInfo(
+            f'behandel volgende records: van fid{fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
         req = QgsFeatureRequest().setFilterFids(fid_list)
         locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
+
+        responses = Ls2.request_ls2_puntlocatie(
+            locaties=locaties,
+            omgeving=OMGEVING,
+            zoekafstand=parameters["zoekafstand"],
+            crs=crs_id,
+            session=session,
+            gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
+            feedback=feedback
+        )
+        feedback.pushInfo(f"responses:{str(responses)}")
+
+        req_schrijf = QgsFeatureRequest()
+        f_subset = [parameters["f_wegnummer"],"refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
+
+        schrijf_resultaten_naar_layer(
+            layer=layer,
+            req=req_schrijf,
+            f_response=[f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
+            responses=responses,
+            feedback=feedback
+        )
         start += limit
-
-
-
-    # locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
-    feedback.pushInfo(f"locaties:{json.dumps(locaties)}")
-
-
-
-    # verzamel oid
-
-
-    responses = Ls2.request_ls2_puntlocatie(
-        locaties=locaties,
-        omgeving=OMGEVING,
-        zoekafstand=parameters["zoekafstand"],
-        crs=crs_id,
-        session=session,
-        gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
-        feedback=feedback
-    )
-
-    feedback.pushInfo(f"responses:{str(responses)}")
-
-    # add refpunt fields according to F_TYPE in Locatieservices2.py
-    # language: python
-    fields_to_add = ["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
-    add_locatie_fields(layer, fields_to_add, feedback)
-
-    schrijf_resultaten_naar_layer(
-        layer=layer,
-        f_response=["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
-        responses=responses,
-        feedback=feedback
-    )
 
     feedback.pushInfo("einde")
