@@ -7,6 +7,8 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsField,
     QgsWkbTypes,
+    QgsProcessingUtils,
+    QgsProcessingFeatureSourceDefinition
 )
 from qgis.PyQt.QtCore import QVariant
 
@@ -52,7 +54,7 @@ def load_module_from_github(feedback=None):
     return loaded_modules
 
 
-def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer,geom_type):
+def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geom_type):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
         geom = row.geometry()
@@ -203,23 +205,14 @@ def main(self, context, parameters, feedback=None):
     feedback.pushInfo("start")
 
     source = self.parameterAsSource(parameters, 'INPUT', context)
-    if source is None:
-        raise QgsProcessingException("INPUT is geen geldige feature source.")
 
     input_param = parameters['INPUT']
-    layer = None
     if isinstance(input_param, QgsProcessingFeatureSourceDefinition):
         layer = QgsProcessingUtils.mapLayerFromString(input_param.source, context, QgsProject.instance())
     else:
         layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
 
     feedback.pushInfo(f"layer: {layer}")
-
-    if layer is None:
-        raise QgsProcessingException(
-            "Kon de invoerlaag niet ophalen uit INPUT. "
-            "Tip: gebruik een VectorLayer-parameter of voeg een CRS-parameter toe."
-        )
 
     crs_id = layer.crs().authid()
     feedback.pushInfo(f"CRS: {crs_id}")
@@ -243,17 +236,16 @@ def main(self, context, parameters, feedback=None):
         f_subset = []
 
     # add refpunt fields according to F_TYPE in Locatieservices2.py
-    fields_to_add = [f_wegnummer,"refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
+    fields_to_add = [f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
     add_locatie_fields(layer, fields_to_add, feedback)
 
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
-
 
     # verzamel oid
     if layer.selectedFeatureCount() > 0:
         fid_list = layer.selectedFeatureIds()  # geselecteerde FIDs
     else:
-        fid_list = [f.id() for f in layer.getFeatures()]        # Geen selectie → neem alle FIDs van de laag
+        fid_list = [f.id() for f in layer.getFeatures()]  # Geen selectie → neem alle FIDs van de laag
 
     start = 0
     limit = parameters["aantal elementen per request"]
@@ -277,7 +269,7 @@ def main(self, context, parameters, feedback=None):
         # feedback.pushInfo(f"responses:{str(responses)}")
 
         req_schrijf = QgsFeatureRequest()
-        f_subset = [parameters["f_wegnummer"],"refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
+        f_subset = [parameters["f_wegnummer"], "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
 
         schrijf_resultaten_naar_layer(
             layer=layer,
