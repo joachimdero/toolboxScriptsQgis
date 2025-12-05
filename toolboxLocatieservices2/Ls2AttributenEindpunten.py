@@ -202,10 +202,28 @@ def main(self, context, parameters, feedback=None):
 
     feedback.pushInfo("start")
 
-    layer = self.parameterAsLayer(parameters, 'INPUT', context)
-    layer = self.parameterAsSource(parameters, 'INPUT', context)
+    source = self.parameterAsSource(parameters, 'INPUT', context)
+    if source is None:
+        raise QgsProcessingException("INPUT is geen geldige feature source.")
+
+    input_param = parameters['INPUT']
+    layer = None
+    if isinstance(input_param, QgsProcessingFeatureSourceDefinition):
+        layer = QgsProcessingUtils.mapLayerFromString(input_param.source, context, QgsProject.instance())
+    else:
+        layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
+
     feedback.pushInfo(f"layer: {layer}")
+
+    if layer is None:
+        raise QgsProcessingException(
+            "Kon de invoerlaag niet ophalen uit INPUT. "
+            "Tip: gebruik een VectorLayer-parameter of voeg een CRS-parameter toe."
+        )
+
     crs_id = layer.crs().authid()
+    feedback.pushInfo(f"CRS: {crs_id}")
+
     wkb_type = layer.wkbType()
     geom_type = QgsWkbTypes.displayString(wkb_type)
     feedback.pushInfo(f"Geometry type: {geom_type}")
