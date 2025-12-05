@@ -203,7 +203,7 @@ def main(self, context, parameters, feedback=None):
     feedback.pushInfo("start")
 
     layer = self.parameterAsLayer(parameters, 'INPUT', context)
-    layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
+    layer = self.parameterAsSource(parameters, 'INPUT', context)
     feedback.pushInfo(f"layer: {layer}")
     crs_id = layer.crs().authid()
     wkb_type = layer.wkbType()
