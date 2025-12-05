@@ -236,9 +236,9 @@ def main(self, context, parameters, feedback=None):
 
 
     while start < len(fid_list):
-        objectids_selectie = fid_list[start:start + limit]
+        fid_selectie = fid_list[start:start + limit]
 
-        feedback.pushInfo(f'behandel volgende records:{str(fid_list[start:start + limit])[:200]} van {len(fid_list)}')
+        feedback.pushInfo(f'behandel volgende records: van fid{fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
 
         start += limit
 
