@@ -237,9 +237,10 @@ def main(self, context, parameters, feedback=None):
     while start < len(fid_list):
         fid_selectie = fid_list[start:start + limit]
         feedback.pushInfo(
-            f'behandel volgende records: van fid{fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
+            f'behandel volgende records: van fid {fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
         req = QgsFeatureRequest().setFilterFids(fid_selectie)
         locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geom_type)
+        feedback.pushInfo(f"aantal locaties in locaties:{str(len(locaties))}")
 
         responses = Ls2.request_ls2_puntlocatie(
             locaties=locaties,
