@@ -9,7 +9,8 @@ from qgis.core import (
     QgsWkbTypes,
     QgsProcessingUtils,
     QgsProcessingFeatureSourceDefinition,
-    QgsProject
+    QgsProject,
+QgsProperty
 )
 from qgis.PyQt.QtCore import QVariant
 
