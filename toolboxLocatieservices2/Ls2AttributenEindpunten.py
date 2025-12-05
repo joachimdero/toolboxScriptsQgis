@@ -229,6 +229,7 @@ def main(self, context, parameters, feedback=None):
 
     start = 0
     limit = parameters["aantal elementen per request"]
+    feedback.pushInfo(f"limit:{str(limit)}")
     while start < len(fid_list):
         fid_selectie = fid_list[start:start + limit]
         feedback.pushInfo(
