@@ -8,7 +8,8 @@ from qgis.core import (
     QgsField,
     QgsWkbTypes,
     QgsProcessingUtils,
-    QgsProcessingFeatureSourceDefinition
+    QgsProcessingFeatureSourceDefinition,
+    QgsProject
 )
 from qgis.PyQt.QtCore import QVariant
 
