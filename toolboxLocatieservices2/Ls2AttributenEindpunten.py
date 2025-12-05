@@ -224,8 +224,7 @@ def main(self, context, parameters, feedback=None):
     if layer.selectedFeatureCount() > 0:
         fid_list = layer.selectedFeatureIds()  # geselecteerde FIDs
     else:
-        # Geen selectie → neem alle FIDs van de laag
-        fid_list = [f.id() for f in layer.getFeatures()]
+        fid_list = [f.id() for f in layer.getFeatures()]        # Geen selectie → neem alle FIDs van de laag
 
     start = 0
     limit = parameters["aantal elementen per request"]
@@ -234,7 +233,7 @@ def main(self, context, parameters, feedback=None):
         fid_selectie = fid_list[start:start + limit]
         feedback.pushInfo(
             f'behandel volgende records: van fid{fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
-        req = QgsFeatureRequest().setFilterFids(fid_list)
+        req = QgsFeatureRequest().setFilterFids(fid_selectie)
         locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer)
 
         responses = Ls2.request_ls2_puntlocatie(
