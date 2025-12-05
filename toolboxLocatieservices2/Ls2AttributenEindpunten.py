@@ -57,6 +57,7 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer,geom
     for i, row in enumerate(layer.getFeatures(req)):
         geom = row.geometry()
         punten = [geom.vertexAt(0), geom.vertexAt(-1)] if geom_type == 'LineString' or geom_type == 'MultiLineString' else [geom.vertexAt(0)]
+        feedback.pushInfo(f"len punten: {len(punten)}")
 
         for punt in punten:
             x, y = punt.x(), punt.y()
