@@ -70,9 +70,6 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
 
         locaties.append(locatie)
 
-        if i > 5:
-            break
-
     return locaties
 
 
@@ -196,7 +193,7 @@ def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refp
 
 
 def main(self, context, parameters, feedback=None):
-    loaded_modules = load_module_from_github(feedback)
+    load_module_from_github(feedback)
     import Locatieservices2 as Ls2
     import AuthenticatieProxyAcmAwv as auth
 
