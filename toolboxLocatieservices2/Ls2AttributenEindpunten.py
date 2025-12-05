@@ -87,6 +87,8 @@ def add_locatie_fields(layer, fields_to_add, feedback):
     }
 
     for fname in fields_to_add:
+        if layer.fields().indexFromName(fname) != -1:
+            continue
         spec = F_TYPE.get(fname)
         if not spec:
             feedback.pushInfo(f"F_TYPE has no spec for {fname}, skipping")
