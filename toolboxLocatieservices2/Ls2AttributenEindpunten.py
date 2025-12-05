@@ -172,8 +172,8 @@ def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refp
                 refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
                 refpunt_afstand = relatief['afstand']
-                feedback.pushInfo(
-                    f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
+                # feedback.pushInfo(
+                #     f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
 
                 attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
                 attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
@@ -213,13 +213,14 @@ def main(self, context, parameters, feedback=None):
     if f_wegnummer not in (None, ''):
         f_subset = [parameters["f_wegnummer"], ]
         req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
-        idx_wegnummer = layer.fields().indexFromName(parameters["f_wegnummer"])
     else:
         f_subset = []
 
     # add refpunt fields according to F_TYPE in Locatieservices2.py
     fields_to_add = [f_wegnummer,"refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
     add_locatie_fields(layer, fields_to_add, feedback)
+
+    idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
 
     # verzamel oid
@@ -244,8 +245,7 @@ def main(self, context, parameters, feedback=None):
             zoekafstand=parameters["zoekafstand"],
             crs=crs_id,
             session=session,
-            gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
-            feedback=feedback
+            gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"]
         )
         # feedback.pushInfo(f"responses:{str(responses)}")
 
