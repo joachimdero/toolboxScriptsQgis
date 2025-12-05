@@ -10,7 +10,7 @@ from qgis.core import (
     QgsProcessingUtils,
     QgsProcessingFeatureSourceDefinition,
     QgsProject,
-QgsProperty
+    QgsProperty
 )
 from qgis.PyQt.QtCore import QVariant
 
