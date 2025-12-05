@@ -58,9 +58,6 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
         geom = row.geometry()
         first_point = geom.vertexAt(0)  # eerste vertex
         x, y = first_point.x(), first_point.y()
-
-        fid = row.id()
-        feedback.pushInfo(f"Feature id:{fid}, x:{x}, y:{y}")
         wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
 
         locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
@@ -166,8 +163,8 @@ def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refp
 
     for feat, response in zip(layer.getFeatures(req), responses):
         attrs = {}
-        feedback.pushInfo(f"response.keys:{str(response.keys)}")
-        feedback.pushInfo(f"feat:{str(feat)}")
+        # feedback.pushInfo(f"response.keys:{str(response.keys)}")
+        # feedback.pushInfo(f"feat:{str(feat)}")
         if 'success' in response.keys():
             success = response['success']
             if 'relatief' in success.keys():
@@ -248,7 +245,7 @@ def main(self, context, parameters, feedback=None):
             gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"],
             feedback=feedback
         )
-        feedback.pushInfo(f"responses:{str(responses)}")
+        # feedback.pushInfo(f"responses:{str(responses)}")
 
         req_schrijf = QgsFeatureRequest()
         f_subset = [parameters["f_wegnummer"],"refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
