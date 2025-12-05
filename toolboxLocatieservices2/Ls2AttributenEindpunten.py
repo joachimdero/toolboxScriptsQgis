@@ -52,20 +52,22 @@ def load_module_from_github(feedback=None):
     return loaded_modules
 
 
-def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer):
+def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer,geom_type):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
         geom = row.geometry()
-        first_point = geom.vertexAt(0)  # eerste vertex
-        x, y = first_point.x(), first_point.y()
-        wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
+        punten = [geom.vertexAt(0), geom.vertexAt(-1)] if geom_type == 'LineString' or geom_type == 'MultiLineString' else: [geom.vertexAt(0)]
 
-        locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
-                                "coordinates": [x, y]}}
-        if wegnummer not in (None, "NULL", ""):
-            locatie["wegnummer"] = {"nummer": wegnummer}
+        for punt in punten:
+            x, y = punt.x(), punt.y()
+            wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
 
-        locaties.append(locatie)
+            locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
+                                    "coordinates": [x, y]}}
+            if wegnummer not in (None, "NULL", ""):
+                locatie["wegnummer"] = {"nummer": wegnummer}
+
+            locaties.append(locatie)
 
     return locaties
 
