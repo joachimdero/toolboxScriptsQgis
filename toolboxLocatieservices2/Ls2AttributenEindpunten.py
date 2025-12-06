@@ -1,3 +1,4 @@
+
 import importlib
 import json
 import os
@@ -16,7 +17,6 @@ from qgis.PyQt.QtCore import QVariant
 
 OMGEVING = "apps"  # productie
 
-
 def load_module_from_github(feedback=None):
     def load_json_modules():
         raw_url = "https://raw.githubusercontent.com/joachimdero/toolboxScriptsQgis/refs/heads/master/toolboxLocatieservices2/modulesFromGithub.json"
@@ -27,32 +27,27 @@ def load_module_from_github(feedback=None):
     modules = load_json_modules()
     cache_dir = os.path.join(os.path.expanduser("~"), ".qgis_module_cache")
     os.makedirs(cache_dir, exist_ok=True)
-
     # Voeg cache_dir één keer toe aan sys.path
     if cache_dir not in sys.path:
         sys.path.append(cache_dir)
 
     loaded_modules = {}
-
     for module_name, url in modules.items():
         feedback.pushInfo(f"Bezig met laden van module: {module_name} van {url}")
         local_path = os.path.join(cache_dir, module_name + ".py")
         urllib.request.urlretrieve(url, local_path)
-
         try:
             # Gebruik importlib voor herladen als module al bestaat
             if module_name in sys.modules:
                 module = importlib.reload(sys.modules[module_name])
             else:
                 module = importlib.import_module(module_name)
-
             loaded_modules[module_name] = module
             if feedback:
                 feedback.pushInfo(f"Geladen: {module_name}")
         except Exception as e:
             if feedback:
                 feedback.reportError(f"Fout bij importeren {module_name}: {e}", fatalError=False)
-
     return loaded_modules
 
 
@@ -60,21 +55,23 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
         geom = row.geometry()
-        punten = [geom.vertexAt(0), geom.vertexAt(-1)] if 'LineString' in geom_type else [geom.vertexAt(0)]
+        # ✅ Geen negatieve index; gebruik laatste index via vertexCount()-1
+        if 'LineString' in geom_type:
+            last_idx = geom.vertexCount() - 1 if geom and geom.vertexCount() > 0 else 0
+            punten = [geom.vertexAt(0), geom.vertexAt(last_idx)]
+        else:
+            punten = [geom.vertexAt(0)]
         feedback.pushInfo(f"len punten: {len(punten)}")
 
         for punt in punten:
             x, y = punt.x(), punt.y()
             wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
-
             locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
                                     "coordinates": [x, y]}}
             if wegnummer not in (None, "NULL", ""):
                 locatie["wegnummer"] = {"nummer": wegnummer}
-
             locaties.append(locatie)
         feedback.pushInfo(f"locaties:{str(locaties)}")
-
     return locaties
 
 
@@ -83,15 +80,12 @@ def add_locatie_fields(layer, fields_to_add, feedback):
         from Locatieservices2 import F_TYPE
     except Exception:
         F_TYPE = {}
-
     new_fields = []
-
     _type_map = {
         "TEXT": int(QVariant.String),
         "DOUBLE": int(QVariant.Double),
         "LONG": int(QVariant.Int),
     }
-
     for fname in fields_to_add:
         if layer.fields().indexFromName(fname) != -1:
             continue
@@ -99,7 +93,6 @@ def add_locatie_fields(layer, fields_to_add, feedback):
         if not spec:
             feedback.pushInfo(f"F_TYPE has no spec for {fname}, skipping")
             continue
-
         # If spec already a QgsField
         if isinstance(spec, QgsField):
             fld = spec
@@ -108,15 +101,15 @@ def add_locatie_fields(layer, fields_to_add, feedback):
             if isinstance(spec, dict):
                 raw_type = spec.get("type", QVariant.String)
                 length = spec.get("length", 0)
-                prec = spec.get("precision", 0)
+                precision = spec.get("precision", 0)
             elif isinstance(spec, (tuple, list)):
                 raw_type = spec[0] if len(spec) > 0 else QVariant.String
                 length = spec[1] if len(spec) > 1 else 0
-                prec = spec[2] if len(spec) > 2 else 0
+                precision = spec[2] if len(spec) > 2 else 0
             else:
                 raw_type = QVariant.String
                 length = 0
-                prec = 0
+                precision = 0
 
             # Normalize raw_type to an int value acceptable by QgsField
             if isinstance(raw_type, str):
@@ -134,13 +127,13 @@ def add_locatie_fields(layer, fields_to_add, feedback):
             except Exception:
                 length = 0
             try:
-                prec = int(prec)
+                precision = int(precision)
             except Exception:
-                prec = 0
+                precision = 0
 
             # Try constructing the QgsField with normalized types, fallback to simpler constructor on failure
             try:
-                fld = QgsField(fname, qtype, "", length, prec)
+                fld = QgsField(fname, qtype, "", length, precision)
             except TypeError:
                 try:
                     fld = QgsField(fname, qtype)
@@ -149,7 +142,7 @@ def add_locatie_fields(layer, fields_to_add, feedback):
 
         if layer.fields().indexFromName(fname) == -1:
             new_fields.append(fld)
-    feedback.pushInfo(f"new_fields:{str(new_fields)}")
+        feedback.pushInfo(f"new_fields:{str(new_fields)}")
 
     if new_fields:
         dp = layer.dataProvider()
@@ -173,8 +166,6 @@ def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refp
 
     for feat, response in zip(layer.getFeatures(req), responses):
         attrs = {}
-        # feedback.pushInfo(f"response.keys:{str(response.keys)}")
-        # feedback.pushInfo(f"feat:{str(feat)}")
         if 'success' in response.keys():
             success = response['success']
             if 'relatief' in success.keys():
@@ -182,8 +173,6 @@ def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refp
                 refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
                 refpunt_afstand = relatief['afstand']
-                # feedback.pushInfo(
-                #     f"refpunt_wegnr:{refpunt_wegnr}, refpunt_opschrift:{refpunt_opschrift}, refpunt_afstand:{refpunt_afstand}")
 
                 attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
                 attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
@@ -192,9 +181,9 @@ def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refp
                 feedback.pushInfo("No 'relatief' key in success response")
         else:
             feedback.pushInfo("No 'success' key in response")
+
         if attrs:
             layer.dataProvider().changeAttributeValues({feat.id(): attrs})
-
     layer.commitChanges()
     feedback.pushInfo("Wrote results to layer")
 
@@ -206,17 +195,35 @@ def main(self, context, parameters, feedback=None):
 
     feedback.pushInfo("start")
 
+    # ✅ Altijd een bron-object ophalen (werkt ook met “Alleen geselecteerde objecten”)
     source = self.parameterAsSource(parameters, 'INPUT', context)
 
-    input_param = parameters['INPUT']
-    if isinstance(input_param, QgsProcessingFeatureSourceDefinition):
-        layer = QgsProcessingUtils.mapLayerFromString(input_param.source, context, QgsProject.instance())
-    else:
-        layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
+    # ✅ Reconstrueer de laag op robuuste wijze (FeatureSourceDefinition of dynamische property)
+    layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
+    if layer is None:
+        # Probeer via evaluatie naar string (deze evalueert een QgsProperty)
+        src_str = self.parameterAsString(parameters, 'INPUT', context)
+
+        # Als het expliciet een FeatureSourceDefinition is, gebruik de source-URI
+        input_param = parameters.get('INPUT', None)
+        if isinstance(input_param, QgsProcessingFeatureSourceDefinition):
+            src_str = input_param.source
+
+        if src_str:
+            layer = QgsProcessingUtils.mapLayerFromString(src_str, context, QgsProject.instance())
+
+    if layer is None:
+        # Duidelijke fout i.p.v. later 'NoneType.crs'
+        raise Exception("Kon de invoerlaag niet bepalen uit INPUT.")
 
     feedback.pushInfo(f"layer: {layer}")
 
-    crs_id = layer.crs().authid()
+    # ✅ CRS veilig ophalen
+    src_crs = layer.crs()
+    if not src_crs.isValid():
+        raise Exception("CRS van de invoerlaag is ongeldig.")
+
+    crs_id = src_crs.authid()
     feedback.pushInfo(f"CRS: {crs_id}")
 
     wkb_type = layer.wkbType()
@@ -230,7 +237,6 @@ def main(self, context, parameters, feedback=None):
     # voorbereiding data lezen
     req = QgsFeatureRequest()
     f_wegnummer = parameters["f_wegnummer"]
-
     if f_wegnummer not in (None, ''):
         f_subset = [parameters["f_wegnummer"], ]
         req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
@@ -240,7 +246,6 @@ def main(self, context, parameters, feedback=None):
     # add refpunt fields according to F_TYPE in Locatieservices2.py
     fields_to_add = [f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
     add_locatie_fields(layer, fields_to_add, feedback)
-
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
     # verzamel oid
@@ -252,11 +257,13 @@ def main(self, context, parameters, feedback=None):
     start = 0
     limit = parameters["aantal elementen per request"]
     feedback.pushInfo(f"limit:{str(limit)}")
+
     while start < len(fid_list):
         fid_selectie = fid_list[start:start + limit]
         feedback.pushInfo(
             f'behandel volgende records: van fid {fid_selectie[0]} tot {fid_selectie[-1]}: {len(fid_selectie)} features')
         req = QgsFeatureRequest().setFilterFids(fid_selectie)
+
         locaties = maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geom_type)
         feedback.pushInfo(f"aantal locaties in locaties:{str(len(locaties))}")
 
@@ -268,11 +275,9 @@ def main(self, context, parameters, feedback=None):
             session=session,
             gebruik_kant_van_de_weg=parameters["gebruik kant van de weg"]
         )
-        # feedback.pushInfo(f"responses:{str(responses)}")
 
         req_schrijf = QgsFeatureRequest()
         f_subset = [parameters["f_wegnummer"], "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
-
         schrijf_resultaten_naar_layer(
             layer=layer,
             req=req_schrijf,
@@ -280,6 +285,7 @@ def main(self, context, parameters, feedback=None):
             responses=responses,
             feedback=feedback
         )
+
         start += limit
 
     feedback.pushInfo("einde")
