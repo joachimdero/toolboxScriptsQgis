@@ -225,7 +225,7 @@ def main(self, context, parameters, feedback=None):
                     raise Exception("Kon INPUT (QgsProperty) niet evalueren naar een layer-URI string.")
 
         if src_str:
-            layer = QgsProcessingUtils.mapLayerFromString(src_str, context, QgsProject.instance())
+            layer = QgsProcessingUtils.mapLayerFromString(src_str[0], context, QgsProject.instance())
 
 
     if layer is None:
