@@ -198,6 +198,7 @@ def main(self, context, parameters, feedback=None):
     # ✅ Altijd een bron-object ophalen (werkt ook met “Alleen geselecteerde objecten”)
     source = self.parameterAsSource(parameters, 'INPUT', context)
 
+
     # ✅ Reconstrueer de laag op robuuste wijze (FeatureSourceDefinition of dynamische property)
     layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
     if layer is None:
@@ -209,8 +210,23 @@ def main(self, context, parameters, feedback=None):
         if isinstance(input_param, QgsProcessingFeatureSourceDefinition):
             src_str = input_param.source
 
+        # ⚠️ Nieuw: als src_str een QgsProperty is, eerst evalueren naar string
+        from qgis.core import QgsProperty
+        if isinstance(src_str, QgsProperty):
+            try:
+                # Gebruik expression context van Processing voor correcte evaluatie
+                src_str = src_str.valueAsString(context.expressionContext())
+            except Exception:
+                # Fallback: generic value() en cast naar string
+                try:
+                    src_str = str(src_str.value(context.expressionContext()))
+                except Exception:
+                    # Laat liever een duidelijke foutmelding zien, dan mapLayerFromString te laten crashen
+                    raise Exception("Kon INPUT (QgsProperty) niet evalueren naar een layer-URI string.")
+
         if src_str:
             layer = QgsProcessingUtils.mapLayerFromString(src_str, context, QgsProject.instance())
+
 
     if layer is None:
         # Duidelijke fout i.p.v. later 'NoneType.crs'
