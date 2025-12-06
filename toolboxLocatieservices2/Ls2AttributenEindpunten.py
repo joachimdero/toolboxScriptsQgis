@@ -224,6 +224,8 @@ def main(self, context, parameters, feedback=None):
                     # Laat liever een duidelijke foutmelding zien, dan mapLayerFromString te laten crashen
                     raise Exception("Kon INPUT (QgsProperty) niet evalueren naar een layer-URI string.")
 
+
+
         if src_str:
             layer = QgsProcessingUtils.mapLayerFromString(src_str[0], context, QgsProject.instance())
 
