@@ -294,9 +294,11 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
 
             # EIND
             r_eind = next(resp_iter, None)
-            relatieve_weglocatie_begin = _extract_refpunt_values(r_eind) if r_eind else None
+            relatieve_weglocatie_eind = _extract_refpunt_values(r_eind) if r_eind else None
+            feedback.pushInfo(f"relatieve_weglocatie_eind:{str(relatieve_weglocatie_eind)}")
+            feedback.pushInfo(f"r_eind:{str(r_eind)}")
             if relatieve_weglocatie_begin:
-                wegnr, opschrift, afstand = relatieve_weglocatie_begin
+                wegnr, opschrift, afstand = relatieve_weglocatie_eind
                 attrs[idx_eind_wegnr]     = wegnr
                 attrs[idx_eind_opschrift] = opschrift
                 attrs[idx_eind_afstand]   = afstand
