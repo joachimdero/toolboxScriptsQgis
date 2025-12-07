@@ -286,7 +286,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
                 attrs[idx_begin_opschrift] = opschrift
                 attrs[idx_begin_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: {vals_begin}")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 1 {vals_begin}")
 
             # EIND
             r_eind = next(resp_iter, None)
@@ -297,7 +297,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
                 attrs[idx_eind_opschrift] = opschrift
                 attrs[idx_eind_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo("Geen geldige 'success/relatief' in eind-response")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 2 {vals_begin}")
 
         else:
             # Niet-line: 1 response per feature
@@ -309,7 +309,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
                 attrs[idx_ref_opschrift] = opschrift
                 attrs[idx_ref_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo("Geen geldige 'success/relatief' in response")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 3 {vals_begin}")
 
         if attrs:
             changes[feat.id()] = attrs
