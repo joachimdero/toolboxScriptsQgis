@@ -51,28 +51,62 @@ def load_module_from_github(feedback=None):
     return loaded_modules
 
 
+
 def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geom_type):
     locaties = []
     for i, row in enumerate(layer.getFeatures(req)):
         geom = row.geometry()
-        # ✅ Geen negatieve index; gebruik laatste index via vertexCount()-1
-        if 'LineString' in geom_type:
-            last_idx = geom.vertexCount() - 1 if geom and geom.vertexCount() > 0 else 0
-            punten = [geom.vertexAt(0), geom.vertexAt(last_idx)]
+        if not geom or geom.isEmpty():
+            # sla lege geometrieën over
+            continue
+
+        # ✅ Robuust vertices ophalen per geometrietype (zonder vertexCount)
+        punten = []
+        if 'MultiLineString' in geom_type:
+            # MultiLineString: lijst van lijnen (elke lijn is lijst van QgsPoint)
+            mlines = geom.asMultiPolyline()
+            for line in mlines:
+                if len(line) > 0:
+                    # start- en eindpunt van elke deel-lijn
+                    punten.append(line[0])
+                    punten.append(line[-1])
+        elif 'LineString' in geom_type:
+            # LineString: enkele lijn als lijst van QgsPoint
+            line = geom.asPolyline()
+            if len(line) > 0:
+                punten = [line[0], line[-1]]
+        elif 'Point' in geom_type:
+            # Optioneel: puntenlagen ondersteunen
+            try:
+                pt = geom.asPoint()
+                # pt is QgsPoint, voeg toe als een enkel punt
+                punten = [pt]
+            except Exception:
+                punten = []
         else:
-            punten = [geom.vertexAt(0)]
+            # Andere geometrieën (Polygon/Multipart) niet behandeld in jouw script; leeg laten
+            punten = []
+
         feedback.pushInfo(f"len punten: {len(punten)}")
 
+        # ✅ Bouw locaties op voor elk punt
         for punt in punten:
             x, y = punt.x(), punt.y()
             wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
-            locatie = {"geometry": {"crs": {"type": "name", "properties": {"name": crs_id}}, "type": "Point",
-                                    "coordinates": [x, y]}}
+            locatie = {
+                "geometry": {
+                    "crs": {"type": "name", "properties": {"name": crs_id}},
+                    "type": "Point",
+                    "coordinates": [x, y]
+                }
+            }
             if wegnummer not in (None, "NULL", ""):
                 locatie["wegnummer"] = {"nummer": wegnummer}
             locaties.append(locatie)
+
         feedback.pushInfo(f"locaties:{str(locaties)}")
     return locaties
+
 
 
 def add_locatie_fields(layer, fields_to_add, feedback):
