@@ -202,11 +202,13 @@ def add_locatie_fields(layer, geom_type,f_wegnummer ,feedback):
 
 
 
-def _extract_refpunt_values(response):
+def _extract_refpunt_values(response, feedback=None):
     """Haal veilig (wegnr, opschrift, afstand) uit een LS2-response. Retourneert tuple of None."""
     try:
         success = response.get('success', {})
+        feedback.pushInfo(f"success:{str(success)}")
         relatief = success.get('relatief', {})
+        feedback.pushInfo(f"relatief:{str(relatief)}")
         wegnr = relatief['referentiepunt']['wegnummer']['nummer']
         opschrift = relatief['referentiepunt']['opschrift']
         afstand = relatief['afstand']
@@ -279,7 +281,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
         if is_line:
             # BEGIN
             r_begin = next(resp_iter, None)
-            relatieve_weglocatie_begin = _extract_refpunt_values(r_begin) if r_begin else None
+            relatieve_weglocatie_begin = _extract_refpunt_values(r_begin,feedback) if r_begin else None
             if relatieve_weglocatie_begin:
                 wegnr, opschrift, afstand = relatieve_weglocatie_begin
                 attrs[idx_begin_wegnr]     = wegnr
