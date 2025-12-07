@@ -279,37 +279,37 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
         if is_line:
             # BEGIN
             r_begin = next(resp_iter, None)
-            vals_begin = _extract_refpunt_values(r_begin) if r_begin else None
-            if vals_begin:
-                wegnr, opschrift, afstand = vals_begin
+            relatieve_weglocatie_begin = _extract_refpunt_values(r_begin) if r_begin else None
+            if relatieve_weglocatie_begin:
+                wegnr, opschrift, afstand = relatieve_weglocatie_begin
                 attrs[idx_begin_wegnr]     = wegnr
                 attrs[idx_begin_opschrift] = opschrift
                 attrs[idx_begin_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 1 {vals_begin}")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 1 {relatieve_weglocatie_begin}")
 
             # EIND
             r_eind = next(resp_iter, None)
-            vals_eind = _extract_refpunt_values(r_eind) if r_eind else None
-            if vals_eind:
-                wegnr, opschrift, afstand = vals_eind
+            relatieve_weglocatie_begin = _extract_refpunt_values(r_eind) if r_eind else None
+            if relatieve_weglocatie_begin:
+                wegnr, opschrift, afstand = relatieve_weglocatie_begin
                 attrs[idx_eind_wegnr]     = wegnr
                 attrs[idx_eind_opschrift] = opschrift
                 attrs[idx_eind_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 2 {vals_begin}")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 2 {relatieve_weglocatie_begin}")
 
         else:
             # Niet-line: 1 response per feature
             r = next(resp_iter, None)
-            vals = _extract_refpunt_values(r) if r else None
-            if vals:
-                wegnr, opschrift, afstand = vals
+            relatieve_weglocatie = _extract_refpunt_values(r) if r else None
+            if relatieve_weglocatie:
+                wegnr, opschrift, afstand = relatieve_weglocatie
                 attrs[idx_ref_wegnr]     = wegnr
                 attrs[idx_ref_opschrift] = opschrift
                 attrs[idx_ref_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 3 {vals_begin}")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 3 {relatieve_weglocatie_begin}")
 
         if attrs:
             changes[feat.id()] = attrs
