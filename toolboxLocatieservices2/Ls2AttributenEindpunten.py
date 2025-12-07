@@ -107,7 +107,7 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
     return locaties
 
 
-def add_locatie_fields(layer, geom_type, feedback):
+def add_locatie_fields(layer, geom_type,f_wegnummer ,feedback):
     try:
         from Locatieservices2 import F_TYPE
     except Exception:
@@ -465,7 +465,7 @@ def main(self, context, parameters, feedback=None):
         f_subset = []
 
     # voeg velden relatieve weglocatie toe volgens F_TYPE in Locatieservices2.py
-    add_locatie_fields(layer, geom_type, feedback)
+    add_locatie_fields(layer, geom_type, f_wegnummer, feedback)
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
     # verzamel oid
