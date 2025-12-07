@@ -208,7 +208,7 @@ def _extract_refpunt_values(response, feedback=None):
         success = response.get('success', {})
         feedback.pushInfo(f"success:{str(success)}")
         relatief = success.get('relatief', {})
-        feedback.pushInfo(f"relatief:{str(relatief)}")
+        feedback.pushInfo(f"RELATIEF:{str(relatief)}")
         wegnr = relatief['referentiepunt']['wegnummer']['nummer']
         opschrift = relatief['referentiepunt']['opschrift']
         afstand = relatief['afstand']
@@ -313,7 +313,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
                 attrs[idx_ref_opschrift] = opschrift
                 attrs[idx_ref_afstand]   = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 3 {relatieve_weglocatie_begin}")
+                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in eind-response: 3 {relatieve_weglocatie_begin}")
 
         if attrs:
             changes[feat.id()] = attrs
