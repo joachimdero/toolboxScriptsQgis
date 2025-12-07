@@ -287,6 +287,8 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
                 attrs[idx_begin_wegnr]     = wegnr
                 attrs[idx_begin_opschrift] = opschrift
                 attrs[idx_begin_afstand]   = afstand
+
+                if feedback: feedback.pushInfo(f" geldige 'success/relatief' in begin-response: 1 {wegnr, opschrift, afstand}")
             else:
                 if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 1 {relatieve_weglocatie_begin}")
 
