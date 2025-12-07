@@ -501,6 +501,7 @@ def main(self, context, parameters, feedback=None):
         )
 
         req_schrijf = QgsFeatureRequest()
+        req.setFilterFids(fid_selectie)
         f_subset = [parameters["f_wegnummer"], "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
         schrijf_resultaten_naar_layer(
             layer=layer,
