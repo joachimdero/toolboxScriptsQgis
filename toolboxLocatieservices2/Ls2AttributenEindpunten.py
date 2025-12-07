@@ -227,7 +227,7 @@ def main(self, context, parameters, feedback=None):
 
 
         if src_str:
-            layer = QgsProcessingUtils.mapLayerFromString(src_str[0], context, QgsProject.instance())
+            layer = QgsProcessingUtils.mapLayerFromString(src_str[0], context, True)
 
 
     if layer is None:
