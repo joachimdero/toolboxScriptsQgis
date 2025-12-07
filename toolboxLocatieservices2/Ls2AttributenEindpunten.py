@@ -1,4 +1,3 @@
-
 import importlib
 import json
 import os
@@ -16,6 +15,7 @@ from qgis.core import (
 from qgis.PyQt.QtCore import QVariant
 
 OMGEVING = "apps"  # productie
+
 
 def load_module_from_github(feedback=None):
     def load_json_modules():
@@ -49,7 +49,6 @@ def load_module_from_github(feedback=None):
             if feedback:
                 feedback.reportError(f"Fout bij importeren {module_name}: {e}", fatalError=False)
     return loaded_modules
-
 
 
 def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geom_type):
@@ -108,12 +107,21 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
     return locaties
 
 
-
-def add_locatie_fields(layer, fields_to_add, feedback):
+def add_locatie_fields(layer, geom_type, feedback):
     try:
         from Locatieservices2 import F_TYPE
     except Exception:
         F_TYPE = {}
+
+    if 'LineString' in geom_type:
+        fields_to_add = [
+            f_wegnummer,
+            "begin_refpunt_wegnr", "begin_refpunt_opschrift", "begin_refpunt_afstand",
+            "eind_refpunt_wegnr", "eind_refpunt_opschrift", "eind_refpunt_afstand"
+        ]
+    else:
+        fields_to_add = [f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
+
     new_fields = []
     _type_map = {
         "TEXT": int(QVariant.String),
@@ -193,33 +201,198 @@ def add_locatie_fields(layer, fields_to_add, feedback):
         feedback.pushInfo("No new fields to add")
 
 
-def schrijf_resultaten_naar_layer(layer, req, f_response=["refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
-                                  responses={}, feedback=None):
+
+def _extract_refpunt_values(response):
+    """Haal veilig (wegnr, opschrift, afstand) uit een LS2-response. Retourneert tuple of None."""
+    try:
+        success = response.get('success', {})
+        relatief = success.get('relatief', {})
+        wegnr = relatief['referentiepunt']['wegnummer']['nummer']
+        opschrift = relatief['referentiepunt']['opschrift']
+        afstand = relatief['afstand']
+        return wegnr, opschrift, afstand
+    except Exception:
+        return None
+
+def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedback=None):
+    """
+    Schrijf per feature LS2-resultaten naar de laag.
+    - Voor (Multi)LineString: verwacht 2 responses per feature (begin/eind).
+    - Voor andere types: 1 response per feature (algemene 'refpunt_*' velden).
+    """
+    if responses is None:
+        responses = []
+
+    # Bepaal hoeveel responses per feature nodig zijn
+    is_line = ('LineString' in geom_type)
+    count_per_feature = 2 if is_line else 1
+
+    # Maak een iterator over responses
+    resp_iter = iter(responses)
+
+    # Haal veld-indices één keer op
+    fields = layer.fields()
+    idx_ref_wegnr      = fields.indexFromName("refpunt_wegnr")
+    idx_ref_opschrift  = fields.indexFromName("refpunt_opschrift")
+    idx_ref_afstand    = fields.indexFromName("refpunt_afstand")
+
+    idx_begin_wegnr    = fields.indexFromName("begin_refpunt_wegnr")
+    idx_begin_opschrift= fields.indexFromName("begin_refpunt_opschrift")
+    idx_begin_afstand  = fields.indexFromName("begin_refpunt_afstand")
+
+    idx_eind_wegnr     = fields.indexFromName("eind_refpunt_wegnr")
+    idx_eind_opschrift = fields.indexFromName("eind_refpunt_opschrift")
+    idx_eind_afstand   = fields.indexFromName("eind_refpunt_afstand")
+
+    # Controleer dat vereiste velden bestaan
+    if is_line:
+        missing = [n for n, idx in [
+            ("begin_refpunt_wegnr", idx_begin_wegnr),
+            ("begin_refpunt_opschrift", idx_begin_opschrift),
+            ("begin_refpunt_afstand", idx_begin_afstand),
+            ("eind_refpunt_wegnr", idx_eind_wegnr),
+            ("eind_refpunt_opschrift", idx_eind_opschrift),
+            ("eind_refpunt_afstand", idx_eind_afstand),
+        ] if idx == -1]
+    else:
+        missing = [n for n, idx in [
+            ("refpunt_wegnr", idx_ref_wegnr),
+            ("refpunt_opschrift", idx_ref_opschrift),
+            ("refpunt_afstand", idx_ref_afstand),
+        ] if idx == -1]
+
+    if missing:
+        raise RuntimeError(f"Ontbrekende velden in laag: {', '.join(missing)}")
+
+    # Start edit-modus indien nodig
+    started = False
     if not layer.isEditable():
         layer.startEditing()
+        started = True
 
-    for feat, response in zip(layer.getFeatures(req), responses):
+    changes = {}  # { fid: { field_idx: value, ... }, ... }
+
+    # Itereer over features
+    for feat in layer.getFeatures(req):
         attrs = {}
-        if 'success' in response.keys():
-            success = response['success']
-            if 'relatief' in success.keys():
-                relatief = success['relatief']
-                refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
-                refpunt_opschrift = relatief['referentiepunt']['opschrift']
-                refpunt_afstand = relatief['afstand']
 
-                attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
-                attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
-                attrs[layer.fields().indexFromName("refpunt_afstand")] = refpunt_afstand
+        if is_line:
+            # BEGIN
+            r_begin = next(resp_iter, None)
+            vals_begin = _extract_refpunt_values(r_begin) if r_begin else None
+            if vals_begin:
+                wegnr, opschrift, afstand = vals_begin
+                attrs[idx_begin_wegnr]     = wegnr
+                attrs[idx_begin_opschrift] = opschrift
+                attrs[idx_begin_afstand]   = afstand
             else:
-                feedback.pushInfo("No 'relatief' key in success response")
+                if feedback: feedback.pushInfo("Geen geldige 'success/relatief' in begin-response")
+
+            # EIND
+            r_eind = next(resp_iter, None)
+            vals_eind = _extract_refpunt_values(r_eind) if r_eind else None
+            if vals_eind:
+                wegnr, opschrift, afstand = vals_eind
+                attrs[idx_eind_wegnr]     = wegnr
+                attrs[idx_eind_opschrift] = opschrift
+                attrs[idx_eind_afstand]   = afstand
+            else:
+                if feedback: feedback.pushInfo("Geen geldige 'success/relatief' in eind-response")
+
         else:
-            feedback.pushInfo("No 'success' key in response")
+            # Niet-line: 1 response per feature
+            r = next(resp_iter, None)
+            vals = _extract_refpunt_values(r) if r else None
+            if vals:
+                wegnr, opschrift, afstand = vals
+                attrs[idx_ref_wegnr]     = wegnr
+                attrs[idx_ref_opschrift] = opschrift
+                attrs[idx_ref_afstand]   = afstand
+            else:
+                if feedback: feedback.pushInfo("Geen geldige 'success/relatief' in response")
 
         if attrs:
-            layer.dataProvider().changeAttributeValues({feat.id(): attrs})
-    layer.commitChanges()
-    feedback.pushInfo("Wrote results to layer")
+            changes[feat.id()] = attrs
+
+    # Wegschrijven in één batch
+    if changes:
+        layer.dataProvider().changeAttributeValues(changes)
+
+    # Commit
+    layer.updateFields()
+    if started:
+        layer.commitChanges()
+
+    if feedback:
+        feedback.pushInfo(f"Wrote results to layer ({len(changes)} features bijgewerkt)")
+
+
+# def schrijf_resultaten_naar_layer(layer, req, geom_type,
+#                                   responses={}, feedback=None):
+#     if not layer.isEditable():
+#         layer.startEditing()
+#
+#     response_iter = iter(responses)
+#
+#     for feat in layer.getFeatures(req):
+#         attrs = {}
+#         if 'LineString' not in geom_type:
+#             response = next(response_iter, {})
+#             if 'success' in response.keys():
+#                 success = response['success']
+#                 if 'relatief' in success.keys():
+#                     relatief = success['relatief']
+#                     refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
+#                     refpunt_opschrift = relatief['referentiepunt']['opschrift']
+#                     refpunt_afstand = relatief['afstand']
+#
+#                     attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
+#                     attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
+#                     attrs[layer.fields().indexFromName("refpunt_afstand")] = refpunt_afstand
+#                 else:
+#                     feedback.pushInfo("No 'relatief' key in success response")
+#
+#         elif 'LineString' in geom_type:
+#             response = next(response_iter, {})
+#             if 'success' in response.keys():
+#                 success = response['success']
+#                 if 'relatief' in success.keys():
+#                     relatief = success['relatief']
+#                     refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
+#                     refpunt_opschrift = relatief['referentiepunt']['opschrift']
+#                     refpunt_afstand = relatief['afstand']
+#
+#                     attrs[layer.fields().indexFromName("begin_refpunt_wegnr")] = refpunt_wegnr
+#                     attrs[layer.fields().indexFromName("begin_refpunt_opschrift")] = refpunt_opschrift
+#                     attrs[layer.fields().indexFromName("begin_refpunt_afstand")] = refpunt_afstand
+#                 else:
+#                     feedback.pushInfo("No 'relatief' key in success response")
+#         response = next(response_iter, {})
+#
+#         if 'success' in response.keys():
+#             success = response['success']
+#             if 'relatief' in success.keys():
+#                 relatief = success['relatief']
+#                 refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
+#                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
+#                 refpunt_afstand = relatief['afstand']
+#
+#                 attrs[layer.fields().indexFromName("eind_refpunt_wegnr")] = refpunt_wegnr
+#                 attrs[layer.fields().indexFromName("eind_refpunt_opschrift")] = refpunt_opschrift
+#                 attrs[layer.fields().indexFromName("eind_refpunt_afstand")] = refpunt_afstand
+#             else:
+#                 feedback.pushInfo("No 'relatief' key in success response")
+#
+#
+#         else:
+#             feedback.pushInfo("No 'success' key in response")
+#
+#     if attrs:
+#         layer.dataProvider().changeAttributeValues({feat.id(): attrs})
+#
+#
+#     layer.commitChanges()
+#     feedback.pushInfo("Wrote results to layer")
 
 
 def main(self, context, parameters, feedback=None):
@@ -231,7 +404,6 @@ def main(self, context, parameters, feedback=None):
 
     # ✅ Altijd een bron-object ophalen (werkt ook met “Alleen geselecteerde objecten”)
     source = self.parameterAsSource(parameters, 'INPUT', context)
-
 
     # ✅ Reconstrueer de laag op robuuste wijze (FeatureSourceDefinition of dynamische property)
     layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
@@ -258,11 +430,8 @@ def main(self, context, parameters, feedback=None):
                     # Laat liever een duidelijke foutmelding zien, dan mapLayerFromString te laten crashen
                     raise Exception("Kon INPUT (QgsProperty) niet evalueren naar een layer-URI string.")
 
-
-
         if src_str:
             layer = QgsProcessingUtils.mapLayerFromString(src_str[0], context, True)
-
 
     if layer is None:
         # Duidelijke fout i.p.v. later 'NoneType.crs'
@@ -295,9 +464,8 @@ def main(self, context, parameters, feedback=None):
     else:
         f_subset = []
 
-    # add refpunt fields according to F_TYPE in Locatieservices2.py
-    fields_to_add = [f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
-    add_locatie_fields(layer, fields_to_add, feedback)
+    # voeg velden relatieve weglocatie toe volgens F_TYPE in Locatieservices2.py
+    add_locatie_fields(layer, geom_type, feedback)
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
     # verzamel oid
@@ -333,7 +501,7 @@ def main(self, context, parameters, feedback=None):
         schrijf_resultaten_naar_layer(
             layer=layer,
             req=req_schrijf,
-            f_response=[f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"],
+            geom_type=geom_type,
             responses=responses,
             feedback=feedback
         )
