@@ -205,9 +205,7 @@ def _extract_refpunt_values(response, feedback=None):
     """Haal veilig (wegnr, opschrift, afstand) uit een LS2-response. Retourneert tuple of None."""
     try:
         success = response.get('success', {})
-        feedback.pushInfo(f"success:{str(success)}")
         relatief = success.get('relatief', {})
-        feedback.pushInfo(f"RELATIEF:{str(relatief)}")
         referentiepunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
         opschrift = relatief['referentiepunt']['opschrift']
         afstand = relatief['afstand']
