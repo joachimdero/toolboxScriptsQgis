@@ -232,6 +232,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
 
     # Maak een iterator over responses
     resp_iter = iter(responses)
+    feedback.pushInfo(f"resp_iter:{str(resp_iter)}")
 
     # Haal veld-indices één keer op
     fields = layer.fields()
