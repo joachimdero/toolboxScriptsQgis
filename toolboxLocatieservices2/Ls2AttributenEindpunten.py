@@ -284,7 +284,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
     # Itereer over features
     for feat in layer.getFeatures(req):
         attrs = {}
-        feedback.pushInfo(f"feat:{str(feat)}")
+        feedback.pushInfo(f"feat:{str(feat.attributes())}")
 
         if is_line:
             # BEGIN
