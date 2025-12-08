@@ -86,8 +86,6 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
             # Andere geometrieën (Polygon/Multipart) niet behandeld in jouw script; leeg laten
             punten = []
 
-        feedback.pushInfo(f"len punten: {len(punten)}")
-
         # ✅ Bouw locaties op voor elk punt
         for punt in punten:
             x, y = punt.x(), punt.y()
@@ -103,16 +101,16 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
                 locatie["wegnummer"] = {"nummer": wegnummer}
             locaties.append(locatie)
 
-        feedback.pushInfo(f"locaties:{str(locaties)}")
     return locaties
 
 
-def add_locatie_fields(layer, geom_type,f_wegnummer ,feedback):
+def add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
     try:
         from Locatieservices2 import F_TYPE
     except Exception:
         F_TYPE = {}
-
+    if f_wegnummer in (None, ''):
+        f_wegnummer = "wegnummer"
     if 'LineString' in geom_type:
         fields_to_add = [
             f_wegnummer,
@@ -200,6 +198,7 @@ def add_locatie_fields(layer, geom_type,f_wegnummer ,feedback):
     else:
         feedback.pushInfo("No new fields to add")
 
+    return f_wegnummer
 
 
 def _extract_refpunt_values(response, feedback=None):
@@ -209,15 +208,17 @@ def _extract_refpunt_values(response, feedback=None):
         feedback.pushInfo(f"success:{str(success)}")
         relatief = success.get('relatief', {})
         feedback.pushInfo(f"RELATIEF:{str(relatief)}")
-        wegnr = relatief['referentiepunt']['wegnummer']['nummer']
+        referentiepunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
         opschrift = relatief['referentiepunt']['opschrift']
         afstand = relatief['afstand']
-        return wegnr, opschrift, afstand
+        wegnummer = relatief["wegnummer"]["nummer"]
+        return wegnummer,referentiepunt_wegnr, opschrift, afstand
     except Exception:
         feedback.pushInfo(f"_extract_refpunt_values mislukt:{str(response)}")
         return None
 
-def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedback=None):
+
+def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=None, feedback=None):
     """
     Schrijf per feature LS2-resultaten naar de laag.
     - Voor (Multi)LineString: verwacht 2 responses per feature (begin/eind).
@@ -236,21 +237,24 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
 
     # Haal veld-indices één keer op
     fields = layer.fields()
-    idx_ref_wegnr      = fields.indexFromName("refpunt_wegnr")
-    idx_ref_opschrift  = fields.indexFromName("refpunt_opschrift")
-    idx_ref_afstand    = fields.indexFromName("refpunt_afstand")
+    idx_wegnummer = fields.indexFromName("wegnummer")
 
-    idx_begin_wegnr    = fields.indexFromName("begin_refpunt_wegnr")
-    idx_begin_opschrift= fields.indexFromName("begin_refpunt_opschrift")
-    idx_begin_afstand  = fields.indexFromName("begin_refpunt_afstand")
+    idx_ref_wegnr = fields.indexFromName("refpunt_wegnr")
+    idx_ref_opschrift = fields.indexFromName("refpunt_opschrift")
+    idx_ref_afstand = fields.indexFromName("refpunt_afstand")
 
-    idx_eind_wegnr     = fields.indexFromName("eind_refpunt_wegnr")
+    idx_begin_wegnr = fields.indexFromName("begin_refpunt_wegnr")
+    idx_begin_opschrift = fields.indexFromName("begin_refpunt_opschrift")
+    idx_begin_afstand = fields.indexFromName("begin_refpunt_afstand")
+
+    idx_eind_wegnr = fields.indexFromName("eind_refpunt_wegnr")
     idx_eind_opschrift = fields.indexFromName("eind_refpunt_opschrift")
-    idx_eind_afstand   = fields.indexFromName("eind_refpunt_afstand")
+    idx_eind_afstand = fields.indexFromName("eind_refpunt_afstand")
 
     # Controleer dat vereiste velden bestaan
     if is_line:
         missing = [n for n, idx in [
+            (f_wegnummer, idx_begin_wegnr),
             ("begin_refpunt_wegnr", idx_begin_wegnr),
             ("begin_refpunt_opschrift", idx_begin_opschrift),
             ("begin_refpunt_afstand", idx_begin_afstand),
@@ -260,6 +264,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
         ] if idx == -1]
     else:
         missing = [n for n, idx in [
+            (f_wegnummer, idx_begin_wegnr),
             ("refpunt_wegnr", idx_ref_wegnr),
             ("refpunt_opschrift", idx_ref_opschrift),
             ("refpunt_afstand", idx_ref_afstand),
@@ -283,42 +288,51 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedbac
         if is_line:
             # BEGIN
             r_begin = next(resp_iter, None)
-            relatieve_weglocatie_begin = _extract_refpunt_values(r_begin,feedback) if r_begin else None
+            relatieve_weglocatie_begin = _extract_refpunt_values(r_begin, feedback) if r_begin else None
             if relatieve_weglocatie_begin:
-                wegnr, opschrift, afstand = relatieve_weglocatie_begin
-                attrs[idx_begin_wegnr]     = wegnr
-                attrs[idx_begin_opschrift] = opschrift
-                attrs[idx_begin_afstand]   = afstand
+                wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie_begin
+                if attrs[idx_wegnummer] in (None,''):
+                    attrs[idx_wegnummer] = wegnummer
 
-                if feedback: feedback.pushInfo(f" geldige 'success/relatief' in begin-response: 1 {wegnr, opschrift, afstand}")
+                attrs[idx_begin_wegnr] = wegnr
+                attrs[idx_begin_opschrift] = opschrift
+                attrs[idx_begin_afstand] = afstand
+
+                if feedback: feedback.pushInfo(
+                    f" geldige 'success/relatief' in begin-response: 1 {wegnr, opschrift, afstand}")
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 1 {relatieve_weglocatie_begin}")
+                if feedback: feedback.pushInfo(
+                    f"Geen geldige 'success/relatief' in begin-response: 1 {relatieve_weglocatie_begin}")
 
             # EIND
             r_eind = next(resp_iter, None)
             feedback.pushInfo(f"r_eind:{str(r_eind)}")
-            relatieve_weglocatie_eind = _extract_refpunt_values(r_eind,feedback) if r_eind else None
+            relatieve_weglocatie_eind = _extract_refpunt_values(r_eind, feedback) if r_eind else None
             feedback.pushInfo(f"relatieve_weglocatie_eind:{str(relatieve_weglocatie_eind)}")
             feedback.pushInfo(f"r_eind:{str(r_eind)}")
             if relatieve_weglocatie_begin:
-                wegnr, opschrift, afstand = relatieve_weglocatie_eind
-                attrs[idx_eind_wegnr]     = wegnr
+                wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie_eind
+                attrs[idx_eind_wegnr] = wegnr
                 attrs[idx_eind_opschrift] = opschrift
-                attrs[idx_eind_afstand]   = afstand
+                attrs[idx_eind_afstand] = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in begin-response: 2 {relatieve_weglocatie_begin}")
+                if feedback: feedback.pushInfo(
+                    f"Geen geldige 'success/relatief' in begin-response: 2 {relatieve_weglocatie_begin}")
 
         else:
             # Niet-line: 1 response per feature
             r = next(resp_iter, None)
             relatieve_weglocatie = _extract_refpunt_values(r) if r else None
             if relatieve_weglocatie:
-                wegnr, opschrift, afstand = relatieve_weglocatie
-                attrs[idx_ref_wegnr]     = wegnr
+                wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie
+                if attrs[idx_wegnummer] in (None,''):
+                    attrs[idx_wegnummer] = wegnummer
+                attrs[idx_ref_wegnr] = wegnr
                 attrs[idx_ref_opschrift] = opschrift
-                attrs[idx_ref_afstand]   = afstand
+                attrs[idx_ref_afstand] = afstand
             else:
-                if feedback: feedback.pushInfo(f"Geen geldige 'success/relatief' in eind-response: 3 {relatieve_weglocatie_begin}")
+                if feedback: feedback.pushInfo(
+                    f"Geen geldige 'success/relatief' in eind-response: 3 {relatieve_weglocatie_begin}")
 
         if attrs:
             changes[feat.id()] = attrs
@@ -474,7 +488,7 @@ def main(self, context, parameters, feedback=None):
         f_subset = []
 
     # voeg velden relatieve weglocatie toe volgens F_TYPE in Locatieservices2.py
-    add_locatie_fields(layer, geom_type, f_wegnummer, feedback)
+    f_wegnummer = add_locatie_fields(layer, geom_type, f_wegnummer, feedback)
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
     # verzamel oid
@@ -512,6 +526,7 @@ def main(self, context, parameters, feedback=None):
             layer=layer,
             req=req_schrijf,
             geom_type=geom_type,
+            f_wegnummer=f_wegnummer,
             responses=responses,
             feedback=feedback
         )
