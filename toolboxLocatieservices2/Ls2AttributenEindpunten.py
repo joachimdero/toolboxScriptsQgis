@@ -214,6 +214,7 @@ def _extract_refpunt_values(response, feedback=None):
         afstand = relatief['afstand']
         return wegnr, opschrift, afstand
     except Exception:
+        feedback.pushInfo(f"_extract_refpunt_values mislukt:{str(response)}")
         return None
 
 def schrijf_resultaten_naar_layer(layer, req, geom_type, responses=None, feedback=None):
