@@ -282,7 +282,11 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
     # Itereer over features
     for feat in layer.getFeatures(req):
         attrs = {}
-        feedback.pushInfo(f"feat:{str(feat.attributes())}")
+
+        attr_dict = {fields[i].name(): v for i, v in enumerate(feat.attributes())}
+
+        # Print netjes in feedback
+        feedback.pushInfo(f"Feature ID: {feat.id()}, Attributes: {attr_dict}")
 
         if is_line:
             # BEGIN
