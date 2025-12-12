@@ -271,6 +271,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
     if missing:
         raise RuntimeError(f"Ontbrekende velden in laag: {', '.join(missing)}")
 
+
     # Start edit-modus indien nodig
     started = False
     if not layer.isEditable():
