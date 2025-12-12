@@ -271,7 +271,6 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
     if missing:
         raise RuntimeError(f"Ontbrekende velden in laag: {', '.join(missing)}")
 
-
     # Start edit-modus indien nodig
     started = False
     if not layer.isEditable():
@@ -427,7 +426,7 @@ def main(self, context, parameters, feedback=None):
     import Locatieservices2 as Ls2
     import AuthenticatieProxyAcmAwv as auth
 
-    feedback.pushInfo("start")
+    feedback.pushInfo("start222222222222222222")
 
     # ✅ Altijd een bron-object ophalen (werkt ook met “Alleen geselecteerde objecten”)
     source = self.parameterAsSource(parameters, 'INPUT', context)
