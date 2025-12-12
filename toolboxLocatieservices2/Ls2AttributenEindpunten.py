@@ -252,7 +252,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
     # Controleer dat vereiste velden bestaan
     if is_line:
         missing = [n for n, idx in [
-            (f_wegnummer, idx_begin_wegnr),
+            (f_wegnummer, idx_wegnummer),
             ("begin_refpunt_wegnr", idx_begin_wegnr),
             ("begin_refpunt_opschrift", idx_begin_opschrift),
             ("begin_refpunt_afstand", idx_begin_afstand),
@@ -262,7 +262,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
         ] if idx == -1]
     else:
         missing = [n for n, idx in [
-            (f_wegnummer, idx_begin_wegnr),
+            (f_wegnummer, idx_wegnummer),
             ("refpunt_wegnr", idx_ref_wegnr),
             ("refpunt_opschrift", idx_ref_opschrift),
             ("refpunt_afstand", idx_ref_afstand),
