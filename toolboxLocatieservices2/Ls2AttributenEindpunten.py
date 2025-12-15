@@ -183,7 +183,7 @@ def add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
 
         if layer.fields().indexFromName(fname) == -1:
             new_fields.append(fld)
-        feedback.pushInfo(f"new_fields:{str(new_fields)}")
+    feedback.pushInfo(f"new_fields:{str(new_fields)}")
 
     if new_fields:
         dp = layer.dataProvider()
