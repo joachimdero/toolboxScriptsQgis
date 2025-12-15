@@ -111,6 +111,7 @@ def add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
         F_TYPE = {}
     if f_wegnummer in (None, ''):
         f_wegnummer = "wegnummer"
+    print(f"f_wegnummer (add_locatie_fields):{str(f_wegnummer)}")
     if 'LineString' in geom_type:
         fields_to_add = [
             f_wegnummer,
@@ -493,6 +494,10 @@ def main(self, context, parameters, feedback=None):
 
     # voeg velden relatieve weglocatie toe volgens F_TYPE in Locatieservices2.py
     f_wegnummer = add_locatie_fields(layer, geom_type, f_wegnummer, feedback)
+
+    print(f"f_wegnummer (NA add_locatie_fields):{str(f_wegnummer)}")
+
+
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
     # verzamel oid
