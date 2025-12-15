@@ -294,7 +294,9 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
             relatieve_weglocatie_begin = _extract_refpunt_values(r_begin, feedback) if r_begin else None
             if relatieve_weglocatie_begin:
                 wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie_begin
-                if attrs[idx_wegnummer] in (None,''):
+                current_wegnummer = feat.attributes()[idx_wegnummer]
+                
+                if current_wegnummer in (None,''):
                     attrs[idx_wegnummer] = wegnummer
 
                 attrs[idx_begin_wegnr] = wegnr
@@ -313,7 +315,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
             relatieve_weglocatie_eind = _extract_refpunt_values(r_eind, feedback) if r_eind else None
             feedback.pushInfo(f"relatieve_weglocatie_eind:{str(relatieve_weglocatie_eind)}")
             feedback.pushInfo(f"r_eind:{str(r_eind)}")
-            if relatieve_weglocatie_begin:
+            if relatieve_weglocatie_eind:
                 wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie_eind
                 attrs[idx_eind_wegnr] = wegnr
                 attrs[idx_eind_opschrift] = opschrift
