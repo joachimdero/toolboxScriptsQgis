@@ -309,10 +309,10 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
 
             # EIND
             r_eind = next(resp_iter, None)
-            feedback.pushInfo(f"r_eind:{str(r_eind)}")
+            # feedback.pushInfo(f"r_eind:{str(r_eind)}")
             relatieve_weglocatie_eind = _extract_refpunt_values(r_eind, feedback) if r_eind else None
-            feedback.pushInfo(f"relatieve_weglocatie_eind:{str(relatieve_weglocatie_eind)}")
-            feedback.pushInfo(f"r_eind:{str(r_eind)}")
+            # feedback.pushInfo(f"relatieve_weglocatie_eind:{str(relatieve_weglocatie_eind)}")
+            # feedback.pushInfo(f"r_eind:{str(r_eind)}")
             if relatieve_weglocatie_eind:
                 wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie_eind
                 attrs[idx_eind_wegnr] = wegnr
