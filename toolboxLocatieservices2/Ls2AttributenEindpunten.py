@@ -235,7 +235,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
 
     # Haal veld-indices één keer op
     fields = layer.fields()
-    idx_wegnummer = fields.indexFromName("wegnummer")
+    idx_wegnummer = fields.indexFromName(f_wegnummer)
 
     idx_ref_wegnr = fields.indexFromName("refpunt_wegnr")
     idx_ref_opschrift = fields.indexFromName("refpunt_opschrift")
@@ -354,72 +354,6 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
         feedback.pushInfo(f"Wrote results to layer ({len(changes)} features bijgewerkt)")
 
 
-# def schrijf_resultaten_naar_layer(layer, req, geom_type,
-#                                   responses={}, feedback=None):
-#     if not layer.isEditable():
-#         layer.startEditing()
-#
-#     response_iter = iter(responses)
-#
-#     for feat in layer.getFeatures(req):
-#         attrs = {}
-#         if 'LineString' not in geom_type:
-#             response = next(response_iter, {})
-#             if 'success' in response.keys():
-#                 success = response['success']
-#                 if 'relatief' in success.keys():
-#                     relatief = success['relatief']
-#                     refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
-#                     refpunt_opschrift = relatief['referentiepunt']['opschrift']
-#                     refpunt_afstand = relatief['afstand']
-#
-#                     attrs[layer.fields().indexFromName("refpunt_wegnr")] = refpunt_wegnr
-#                     attrs[layer.fields().indexFromName("refpunt_opschrift")] = refpunt_opschrift
-#                     attrs[layer.fields().indexFromName("refpunt_afstand")] = refpunt_afstand
-#                 else:
-#                     feedback.pushInfo("No 'relatief' key in success response")
-#
-#         elif 'LineString' in geom_type:
-#             response = next(response_iter, {})
-#             if 'success' in response.keys():
-#                 success = response['success']
-#                 if 'relatief' in success.keys():
-#                     relatief = success['relatief']
-#                     refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
-#                     refpunt_opschrift = relatief['referentiepunt']['opschrift']
-#                     refpunt_afstand = relatief['afstand']
-#
-#                     attrs[layer.fields().indexFromName("begin_refpunt_wegnr")] = refpunt_wegnr
-#                     attrs[layer.fields().indexFromName("begin_refpunt_opschrift")] = refpunt_opschrift
-#                     attrs[layer.fields().indexFromName("begin_refpunt_afstand")] = refpunt_afstand
-#                 else:
-#                     feedback.pushInfo("No 'relatief' key in success response")
-#         response = next(response_iter, {})
-#
-#         if 'success' in response.keys():
-#             success = response['success']
-#             if 'relatief' in success.keys():
-#                 relatief = success['relatief']
-#                 refpunt_wegnr = relatief['referentiepunt']['wegnummer']['nummer']
-#                 refpunt_opschrift = relatief['referentiepunt']['opschrift']
-#                 refpunt_afstand = relatief['afstand']
-#
-#                 attrs[layer.fields().indexFromName("eind_refpunt_wegnr")] = refpunt_wegnr
-#                 attrs[layer.fields().indexFromName("eind_refpunt_opschrift")] = refpunt_opschrift
-#                 attrs[layer.fields().indexFromName("eind_refpunt_afstand")] = refpunt_afstand
-#             else:
-#                 feedback.pushInfo("No 'relatief' key in success response")
-#
-#
-#         else:
-#             feedback.pushInfo("No 'success' key in response")
-#
-#     if attrs:
-#         layer.dataProvider().changeAttributeValues({feat.id(): attrs})
-#
-#
-#     layer.commitChanges()
-#     feedback.pushInfo("Wrote results to layer")
 
 
 def main(self, context, parameters, feedback=None):
