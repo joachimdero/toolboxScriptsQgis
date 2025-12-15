@@ -284,9 +284,8 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
         attrs = {}
 
         fields = layer.fields()
-        for feat in layer.getFeatures(req):
-            pairs = [f"{i}:{fields[i].name()}={v}" for i, v in enumerate(feat.attributes())]
-            feedback.pushInfo(" | ".join(pairs))
+        pairs = [f"{i}:{fields[i].name()}={v}" for i, v in enumerate(feat.attributes())]
+        feedback.pushInfo(" | ".join(pairs))
 
         if is_line:
             # BEGIN
