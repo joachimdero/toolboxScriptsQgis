@@ -301,8 +301,8 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
                 attrs[idx_begin_opschrift] = opschrift
                 attrs[idx_begin_afstand] = afstand
 
-                if feedback: feedback.pushInfo(
-                    f" geldige 'success/relatief' in begin-response: 1 {wegnr, opschrift, afstand}")
+                # if feedback: feedback.pushInfo(
+                #     f" geldige 'success/relatief' in begin-response: 1 {wegnr, opschrift, afstand}")
             else:
                 if feedback: feedback.pushInfo(
                     f"Geen geldige 'success/relatief' in begin-response: 1 {relatieve_weglocatie_begin}")
@@ -484,6 +484,7 @@ def main(self, context, parameters, feedback=None):
     # voorbereiding data lezen
     req = QgsFeatureRequest()
     f_wegnummer = parameters["f_wegnummer"]
+    feedback.pushInfo(f"f_wegnummer (parameters):{str(f_wegnummer)}")
     if f_wegnummer not in (None, ''):
         f_subset = [parameters["f_wegnummer"], ]
         req.setSubsetOfAttributes(f_subset, layer.fields())  # enkel deze velden
