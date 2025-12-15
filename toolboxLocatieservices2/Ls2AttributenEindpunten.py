@@ -227,7 +227,6 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
 
     # Bepaal hoeveel responses per feature nodig zijn
     is_line = ('LineString' in geom_type)
-    count_per_feature = 2 if is_line else 1
 
     # Maak een iterator over responses
     resp_iter = iter(responses)
@@ -525,7 +524,7 @@ def main(self, context, parameters, feedback=None):
 
         req_schrijf = QgsFeatureRequest()
         req_schrijf.setFilterFids(fid_selectie)
-        f_subset = [parameters["f_wegnummer"], "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
+        f_subset = [f_wegnummer, "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"]
         schrijf_resultaten_naar_layer(
             layer=layer,
             req=req_schrijf,
