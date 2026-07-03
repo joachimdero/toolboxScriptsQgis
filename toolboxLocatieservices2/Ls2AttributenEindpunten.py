@@ -97,7 +97,7 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
                     "coordinates": [x, y]
                 }
             }
-            if wegnummer not in (None, "NULL", ""):
+            if wegnummer not in (None, "NULL", "", None):
                 locatie["wegnummer"] = {"nummer": wegnummer}
             locaties.append(locatie)
 
