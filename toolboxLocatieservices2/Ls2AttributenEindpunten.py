@@ -87,6 +87,8 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
             punten = []
 
         # ✅ Bouw locaties op voor elk punt
+
+        feedback.pushInfo(f"****///////***locaties: {locaties}")
         for punt in punten:
             x, y = punt.x(), punt.y()
             wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
@@ -97,7 +99,8 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
                     "coordinates": [x, y]
                 }
             }
-            if wegnummer not in (None, "NULL", "", None):
+            feedback.pushInfo(f"****!!!!***locaties: {locaties}")
+            if wegnummer not in (None, "NULL", "", ):
                 locatie["wegnummer"] = {"nummer": wegnummer}
             locaties.append(locatie)
 
