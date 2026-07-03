@@ -101,7 +101,8 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
                 locatie["wegnummer"] = {"nummer": wegnummer}
             locaties.append(locatie)
 
-    feedback.pushInfo(f"*******locaties: {locaties}")
+    feedback.pushInfo(f"****!!!!***wegnummer: {wegnummer}")
+    feedback.pushInfo(f"****!!!!***locaties: {locaties}")
     return locaties
 
 def add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
