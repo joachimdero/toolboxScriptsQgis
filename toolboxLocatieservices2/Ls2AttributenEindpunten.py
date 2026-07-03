@@ -90,7 +90,9 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
 
         for punt in punten:
             x, y = punt.x(), punt.y()
-            wegnummer = str(row.attributes()[idx_wegnummer]) if idx_wegnummer != -1 else None
+            waarde = row.attributes()[idx_wegnummer]
+            wegnummer = None if waarde in (None, "") else str(waarde)
+
             locatie = {
                 "geometry": {
                     "crs": {"type": "name", "properties": {"name": crs_id}},
