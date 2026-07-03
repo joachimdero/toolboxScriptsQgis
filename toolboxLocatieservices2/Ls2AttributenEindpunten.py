@@ -103,8 +103,167 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
 
     return locaties
 
-
 def add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
+    try:
+        from Locatieservices2 import F_TYPE
+    except Exception:
+        F_TYPE = {}
+
+    if f_wegnummer in (None, ''):
+        f_wegnummer = "wegnummer"
+
+    feedback.pushInfo(f"f_wegnummer (add_locatie_fields): {str(f_wegnummer)}")
+
+    if 'LineString' in geom_type:
+        fields_to_add = [
+            f_wegnummer,
+            "begin_refpunt_wegnr", "begin_refpunt_opschrift", "begin_refpunt_afstand",
+            "eind_refpunt_wegnr", "eind_refpunt_opschrift", "eind_refpunt_afstand"
+        ]
+    else:
+        fields_to_add = [
+            f_wegnummer,
+            "refpunt_wegnr", "refpunt_opschrift", "refpunt_afstand"
+        ]
+
+    # QGIS 4 / Qt6 gebruikt QMetaType i.p.v. int(QVariant.*)
+    try:
+        from qgis.PyQt.QtCore import QMetaType
+
+        TYPE_STRING = QMetaType.Type.QString
+        TYPE_DOUBLE = QMetaType.Type.Double
+        TYPE_INT = QMetaType.Type.Int
+
+        feedback.pushInfo("Gebruik QMetaType veldtypes voor QGIS/Qt6.")
+
+    except Exception:
+        # Fallback voor QGIS 3 / Qt5
+        from qgis.PyQt.QtCore import QVariant
+
+        TYPE_STRING = QVariant.String
+        TYPE_DOUBLE = QVariant.Double
+        TYPE_INT = QVariant.Int
+
+        feedback.pushInfo("Gebruik QVariant veldtypes voor QGIS/Qt5.")
+
+    def normalize_field_type(raw_type):
+        """
+        Zet F_TYPE-definities om naar een type dat QgsField aanvaardt.
+        Compatibel met QGIS 3 en QGIS 4.
+        """
+
+        if raw_type is None:
+            return TYPE_STRING
+
+        if isinstance(raw_type, str):
+            t = raw_type.upper()
+
+            if t in ("TEXT", "STRING", "STR", "QSTRING"):
+                return TYPE_STRING
+
+            if t in ("DOUBLE", "FLOAT", "REAL"):
+                return TYPE_DOUBLE
+
+            if t in ("LONG", "INT", "INTEGER"):
+                return TYPE_INT
+
+            return TYPE_STRING
+
+        # Als raw_type al een QVariant.Type of QMetaType.Type is,
+        # geef het gewoon terug. Niet casten naar int.
+        return raw_type
+
+    new_fields = []
+
+    for fname in fields_to_add:
+        if layer.fields().indexFromName(fname) != -1:
+            continue
+
+        spec = F_TYPE.get(fname)
+
+        if not spec:
+            feedback.pushInfo(f"F_TYPE has no spec for {fname}, skipping")
+            continue
+
+        if isinstance(spec, QgsField):
+            fld = spec
+
+        else:
+            if isinstance(spec, dict):
+                raw_type = spec.get("type", "TEXT")
+                length = spec.get("length", 0)
+                precision = spec.get("precision", 0)
+
+            elif isinstance(spec, (tuple, list)):
+                raw_type = spec[0] if len(spec) > 0 else "TEXT"
+                length = spec[1] if len(spec) > 1 else 0
+                precision = spec[2] if len(spec) > 2 else 0
+
+            else:
+                raw_type = "TEXT"
+                length = 0
+                precision = 0
+
+            qtype = normalize_field_type(raw_type)
+
+            try:
+                length = int(length)
+            except Exception:
+                length = 0
+
+            try:
+                precision = int(precision)
+            except Exception:
+                precision = 0
+
+            try:
+                fld = QgsField(str(fname), qtype, "", length, precision)
+            except TypeError as e1:
+                feedback.reportError(
+                    f"QgsField met lengte/precisie mislukt voor {fname}: {e1}",
+                    fatalError=False
+                )
+
+                try:
+                    fld = QgsField(str(fname), qtype)
+                except TypeError as e2:
+                    feedback.reportError(
+                        f"QgsField eenvoudig mislukt voor {fname}: {e2}",
+                        fatalError=False
+                    )
+
+                    # Laatste fallback: stringveld
+                    fld = QgsField(str(fname), TYPE_STRING)
+
+        if layer.fields().indexFromName(fname) == -1:
+            new_fields.append(fld)
+
+    if new_fields:
+        dp = layer.dataProvider()
+
+        started = False
+        if not layer.isEditable():
+            layer.startEditing()
+            started = True
+
+        ok = dp.addAttributes(new_fields)
+        layer.updateFields()
+
+        if started:
+            layer.commitChanges()
+
+        if ok:
+            feedback.pushInfo(f"Added fields: {[f.name() for f in new_fields]}")
+        else:
+            feedback.reportError(
+                f"addAttributes gaf False terug voor: {[f.name() for f in new_fields]}",
+                fatalError=False
+            )
+    else:
+        feedback.pushInfo("No new fields to add")
+
+    return f_wegnummer
+def z_add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
     try:
         from Locatieservices2 import F_TYPE
     except Exception:
@@ -183,7 +342,6 @@ def add_locatie_fields(layer, geom_type, f_wegnummer, feedback):
 
         if layer.fields().indexFromName(fname) == -1:
             new_fields.append(fld)
-    feedback.pushInfo(f"new_fields:{str(new_fields)}")
 
     if new_fields:
         dp = layer.dataProvider()
@@ -211,13 +369,13 @@ def _extract_refpunt_values(response, feedback=None):
         opschrift = relatief['referentiepunt']['opschrift']
         afstand = relatief['afstand']
         wegnummer = relatief["wegnummer"]["nummer"]
-        return wegnummer,referentiepunt_wegnr, opschrift, afstand
+        return wegnummer, referentiepunt_wegnr, opschrift, afstand
     except Exception:
         feedback.pushInfo(f"_extract_refpunt_values mislukt:{str(response)}")
         return None
 
 
-def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=None, feedback=None):
+def schrijf_resultaten_naar_layer(layer, req, geom_type, f_wegnummer, responses=None, feedback=None):
     """
     Schrijf per feature LS2-resultaten naar de laag.
     - Voor (Multi)LineString: verwacht 2 responses per feature (begin/eind).
@@ -231,7 +389,6 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
 
     # Maak een iterator over responses
     resp_iter = iter(responses)
-    feedback.pushInfo(f"resp_iter:{str(resp_iter)}")
 
     # Haal veld-indices één keer op
     fields = layer.fields()
@@ -294,8 +451,8 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
             if relatieve_weglocatie_begin:
                 wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie_begin
                 current_wegnummer = feat.attributes()[idx_wegnummer]
-                
-                if current_wegnummer in (None,''):
+
+                if current_wegnummer in (None, ''):
                     attrs[idx_wegnummer] = wegnummer
 
                 attrs[idx_begin_wegnr] = wegnr
@@ -329,7 +486,7 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
             relatieve_weglocatie = _extract_refpunt_values(r) if r else None
             if relatieve_weglocatie:
                 wegnummer, wegnr, opschrift, afstand = relatieve_weglocatie
-                if attrs[idx_wegnummer] in (None,''):
+                if attrs[idx_wegnummer] in (None, ''):
                     attrs[idx_wegnummer] = wegnummer
                 attrs[idx_ref_wegnr] = wegnr
                 attrs[idx_ref_opschrift] = opschrift
@@ -354,17 +511,10 @@ def schrijf_resultaten_naar_layer(layer, req, geom_type,f_wegnummer, responses=N
         feedback.pushInfo(f"Wrote results to layer ({len(changes)} features bijgewerkt)")
 
 
-
-
 def main(self, context, parameters, feedback=None):
     load_module_from_github(feedback)
     import Locatieservices2 as Ls2
     import AuthenticatieProxyAcmAwv as auth
-
-    feedback.pushInfo("start2333333")
-
-    # ✅ Altijd een bron-object ophalen (werkt ook met “Alleen geselecteerde objecten”)
-    source = self.parameterAsSource(parameters, 'INPUT', context)
 
     # ✅ Reconstrueer de laag op robuuste wijze (FeatureSourceDefinition of dynamische property)
     layer = self.parameterAsVectorLayer(parameters, 'INPUT', context)
@@ -431,7 +581,6 @@ def main(self, context, parameters, feedback=None):
 
     print(f"f_wegnummer (NA add_locatie_fields):{str(f_wegnummer)}")
 
-
     idx_wegnummer = layer.fields().indexFromName(f_wegnummer)
 
     # verzamel oid
@@ -442,7 +591,6 @@ def main(self, context, parameters, feedback=None):
 
     start = 0
     limit = parameters["aantal elementen per request"]
-    feedback.pushInfo(f"limit:{str(limit)}")
 
     while start < len(fid_list):
         fid_selectie = fid_list[start:start + limit]
@@ -476,4 +624,3 @@ def main(self, context, parameters, feedback=None):
 
         start += limit
 
-    feedback.pushInfo("einde")
