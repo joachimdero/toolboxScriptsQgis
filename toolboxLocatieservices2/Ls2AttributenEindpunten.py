@@ -103,7 +103,7 @@ def maak_json_locatie(feedback, layer, req, crs_id, f_subset, idx_wegnummer, geo
                 locatie["wegnummer"] = {"nummer": wegnummer}
             locaties.append(locatie)
 
-    feedback.pushInfo(f"****!!!!***wegnummer: {wegnummer}")
+    feedback.pushInfo(f"****!!!!!!!***wegnummer: {wegnummer}")
     feedback.pushInfo(f"****!!!!***locaties: {locaties}")
     return locaties
 
